@@ -30,10 +30,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install --no-audit --no-fund --legacy-peer-deps
 
       - name: Run unit & Firestore security rule tests
         run: npx tsx --test firestore.rules.test.ts src/utils/intelligenceRules.test.ts
@@ -49,6 +48,8 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload production artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v3
