@@ -16,6 +16,7 @@ import {
   getPriorityCategory,
   normalizeDomain,
 } from '../utils/intelligenceRules';
+import { discoverBusinessesWebFallback } from '../lib/webApiFallback';
 import {
   Search,
   Play,
@@ -107,20 +108,31 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
     setDiscoveryNotice(null);
     try {
       const existingDomains = businesses.map((b) => b.normalizedDomain);
-      const res = await fetch('/api/ai/discover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          country: selectedCountry,
-          industry: selectedCategory,
-          count: batchCount,
-          exclusionTerms,
-          requireWebsite,
-          excludedDomains: existingDomains,
-          serviceCatalogueSummary: services.map((s) => s.name).join(', '),
-        }),
-      });
-      const data = await res.json();
+      const payload = {
+        country: selectedCountry,
+        industry: selectedCategory,
+        count: batchCount,
+        exclusionTerms,
+        requireWebsite,
+        excludedDomains: existingDomains,
+        serviceCatalogueSummary: services.map((s) => s.name).join(', '),
+      };
+
+      let data: { candidates: any[] | null; fallbackReason?: string } = { candidates: null };
+      try {
+        const res = await fetch('/api/ai/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          data = await discoverBusinessesWebFallback(payload);
+        }
+      } catch {
+        data = await discoverBusinessesWebFallback(payload);
+      }
 
       const rawList: any[] = Array.isArray(data?.candidates) ? data.candidates : [];
       const errorsEncountered: string[] = [];

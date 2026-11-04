@@ -276,17 +276,40 @@ advibestudios.global@gmail.com`;
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      const res = await fetch('/api/gmail/create-draft', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      let data: { gmailDraftId?: string };
+      try {
+        const res = await fetch('/api/gmail/create-draft', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            idempotencyKey: draft.idempotencyKey,
+            to: draft.contactEmail,
+            subject: draft.subject,
+            body: draft.body,
+          }),
+        });
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          const { createGmailDraftWebFallback } = await import('../lib/webApiFallback');
+          data = await createGmailDraftWebFallback({
+            idempotencyKey: draft.idempotencyKey,
+            to: draft.contactEmail,
+            subject: draft.subject,
+            body: draft.body,
+            accessToken: token,
+          });
+        }
+      } catch {
+        const { createGmailDraftWebFallback } = await import('../lib/webApiFallback');
+        data = await createGmailDraftWebFallback({
           idempotencyKey: draft.idempotencyKey,
           to: draft.contactEmail,
           subject: draft.subject,
           body: draft.body,
-        }),
-      });
-      const data = await res.json();
+          accessToken: token,
+        });
+      }
       onUpdateDraftStatus(
         draft.id,
         {
