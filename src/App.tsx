@@ -37,8 +37,12 @@ import {
   deleteBusinessFromFirestore,
   googleSignIn,
   initAuth,
+  loadBusinessesFromFirestore,
   logout,
+  purgeAllUserFirestoreData,
   syncBusinessToFirestore,
+  syncCampaignDraftToFirestore,
+  syncFollowUpTaskToFirestore,
   testFirestoreConnection,
 } from './lib/firebase';
 import { getNextActionRecommendationForOutcome } from './utils/intelligenceRules';
@@ -80,6 +84,18 @@ interface NavItem {
   badge?: number | string;
 }
 
+const LEGACY_TEST_LEAD_IDS = new Set([
+  'biz-lumiere-uk',
+  'biz-paybridge-ng',
+  'biz-sola-us',
+  'biz-akosombo-gh',
+  'biz-savannah-ke',
+  'biz-apexmedia-us',
+  'biz-nordic-uk-noemail',
+]);
+
+const STORAGE_KEY = 'advibe_clean_production_v2';
+
 export default function App() {
   const [activeModule, setActiveModule] = useState<NavigationModule>('overview');
   const [globalSearch, setGlobalSearch] = useState<string>('');
@@ -87,10 +103,45 @@ export default function App() {
   const [campaignTargetBusinessId, setCampaignTargetBusinessId] = useState<string | null>(null);
   const [campaignTargetContactId, setCampaignTargetContactId] = useState<string | null>(null);
 
-  // Core CRM & Platform State
-  const [businesses, setBusinesses] = useState<BusinessRecord[]>(INITIAL_BUSINESSES);
-  const [tasks, setTasks] = useState<FollowUpTask[]>(INITIAL_FOLLOW_UP_TASKS);
-  const [drafts, setDrafts] = useState<OutreachEmailDraft[]>(INITIAL_EMAIL_DRAFTS);
+  // Core CRM & Platform State (Clean of all test leads)
+  const [businesses, setBusinesses] = useState<BusinessRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.businesses)) {
+          return parsed.businesses.filter((b: BusinessRecord) => !LEGACY_TEST_LEAD_IDS.has(b.id));
+        }
+      }
+    } catch {}
+    return INITIAL_BUSINESSES;
+  });
+  const [tasks, setTasks] = useState<FollowUpTask[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.tasks)) {
+          return parsed.tasks.filter((t: FollowUpTask) => !LEGACY_TEST_LEAD_IDS.has(t.businessId));
+        }
+      }
+    } catch {}
+    return INITIAL_FOLLOW_UP_TASKS;
+  });
+  const [drafts, setDrafts] = useState<OutreachEmailDraft[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.drafts)) {
+          return parsed.drafts.filter(
+            (d: OutreachEmailDraft) => !LEGACY_TEST_LEAD_IDS.has(d.businessId)
+          );
+        }
+      }
+    } catch {}
+    return INITIAL_EMAIL_DRAFTS;
+  });
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>(INITIAL_CAMPAIGNS);
   const [services, setServices] = useState<AdVibeService[]>(INITIAL_SERVICE_CATALOGUE);
   const [categories, setCategories] = useState<string[]>(INITIAL_BUSINESS_CATEGORIES);
@@ -109,12 +160,46 @@ export default function App() {
   const [authUserEmail, setAuthUserEmail] = useState<string | null>(null);
   const [hasGmailToken, setHasGmailToken] = useState<boolean>(false);
 
+  // Persist live CRM state to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          businesses,
+          tasks,
+          drafts,
+        })
+      );
+    } catch {}
+  }, [businesses, tasks, drafts]);
+
   useEffect(() => {
     testFirestoreConnection();
     const unsub = initAuth(
-      (user, token) => {
+      async (user, token) => {
         setAuthUserEmail(user.email || 'advibestudios.global@gmail.com');
         setHasGmailToken(Boolean(token));
+        try {
+          const remoteBusinesses = await loadBusinessesFromFirestore();
+          // Automatically purge any legacy test leads if present in Firestore
+          const cleanRemote: BusinessRecord[] = [];
+          for (const b of remoteBusinesses) {
+            if (LEGACY_TEST_LEAD_IDS.has(b.id)) {
+              await deleteBusinessFromFirestore(b.id).catch(() => {});
+            } else {
+              cleanRemote.push(b);
+            }
+          }
+          if (cleanRemote.length > 0) {
+            setBusinesses((prev) => {
+              const map = new Map<string, BusinessRecord>();
+              prev.forEach((item) => map.set(item.id, item));
+              cleanRemote.forEach((item) => map.set(item.id, item));
+              return Array.from(map.values());
+            });
+          }
+        } catch {}
       },
       () => {
         setAuthUserEmail(null);
@@ -167,6 +252,27 @@ export default function App() {
   const handleUpdateBusiness = (updated: BusinessRecord) => {
     setBusinesses((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
     syncBusinessToFirestore(updated).catch(() => {});
+  };
+
+  const handlePurgeAllLeads = async () => {
+    setBusinesses([]);
+    setTasks([]);
+    setDrafts([]);
+    setCampaigns([]);
+    setDiscoveryReports([]);
+    setSuppressionList([]);
+    setAllocations(INITIAL_DAILY_ALLOCATIONS);
+    setSelectedBusinessId(null);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+    await purgeAllUserFirestoreData().catch(() => {});
+    appendAuditLog(
+      'Purged all leads, tasks, drafts, and discovery history',
+      'Settings',
+      'Database Clean Reset',
+      'Database cleaned of all leads in local state and Cloud Firestore.'
+    );
   };
 
   const handleAddBusiness = (newBiz: BusinessRecord) => {
@@ -254,6 +360,7 @@ export default function App() {
       id: `tsk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     };
     setTasks((prev) => [newTask, ...prev]);
+    syncFollowUpTaskToFirestore(newTask).catch(() => {});
 
     const targetBiz = businesses.find((b) => b.id === taskInput.businessId);
     if (targetBiz) {
@@ -431,6 +538,7 @@ export default function App() {
       const exists = prev.some((d) => d.id === draft.id);
       return exists ? prev.map((d) => (d.id === draft.id ? draft : d)) : [draft, ...prev];
     });
+    syncCampaignDraftToFirestore(draft).catch(() => {});
     appendAuditLog(
       'Generated personalised outreach email draft',
       'Campaign Studio',
@@ -449,6 +557,7 @@ export default function App() {
 
     const updatedDraft: OutreachEmailDraft = { ...targetDraft, ...updates };
     setDrafts((prev) => prev.map((d) => (d.id === draftId ? updatedDraft : d)));
+    syncCampaignDraftToFirestore(updatedDraft).catch(() => {});
 
     const targetBiz = businesses.find((b) => b.id === targetDraft.businessId);
     if (targetBiz) {
@@ -1043,6 +1152,7 @@ export default function App() {
                 );
               }}
               onChangeUserRole={(role) => setCurrentUserRole(role)}
+              onPurgeAllLeads={handlePurgeAllLeads}
             />
           )}
         </main>

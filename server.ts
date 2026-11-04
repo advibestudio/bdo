@@ -27,7 +27,7 @@ const idempotentDraftRegistry = new Map<
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json({ limit: '5mb' }));
 
@@ -38,6 +38,7 @@ async function startServer() {
       geminiConfigured: Boolean(
         process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'
       ),
+      sendfoxConfigured: Boolean(process.env.SENDFOX_API_KEY),
       targetGmailAccount: 'advibestudios.global@gmail.com',
     });
   });
@@ -48,6 +49,7 @@ async function startServer() {
       country = 'United Kingdom',
       industry = 'Skincare businesses',
       count = 3,
+      exclusionTerms = '',
       excludedDomains = [],
       serviceCatalogueSummary = '',
     } = req.body || {};
@@ -56,8 +58,9 @@ async function startServer() {
       const response = await ai.models.generateContent({
         model: 'gemini-3.8-flash',
         contents: `You are the AdVibe Prospect Intelligence Discovery Engine for AdVibe Studios.
-Discover ${Math.min(Number(count) || 3, 5)} real operating commercial businesses in ${country} within the category "${industry}" that could benefit from AI-powered video advertising, UGC-style product ads, explainer videos, or monthly video content retainers.
-Exclude these already-known domains: ${ (excludedDomains as string[]).join(', ') || 'none' }.
+Discover ${Math.min(Math.max(1, Number(count) || 3), 15)} real operating commercial businesses in ${country} within the category "${industry}" that could benefit from AI-powered video advertising, UGC-style product ads, explainer videos, or monthly video content retainers.
+Exclusion terms: ${exclusionTerms || 'directory, aggregator, blog'}.
+Exclude these already-known domains: ${(excludedDomains as string[]).join(', ') || 'none'}.
 Available AdVibe Services: ${serviceCatalogueSummary || 'Product Advertisements, UGC-Style Advertisements, Explainer Videos, Monthly AI Video Content Retainers, AI Promotional Mini-Series'}.
 
 Rules (strictly enforced):

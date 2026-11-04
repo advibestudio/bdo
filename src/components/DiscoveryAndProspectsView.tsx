@@ -80,10 +80,12 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
   // Discovery Config State
   const [selectedCountry, setSelectedCountry] = useState<TargetCountry>('United Kingdom');
   const [selectedCategory, setSelectedCategory] = useState<string>('Skincare businesses');
+  const [batchCount, setBatchCount] = useState<number>(3);
   const [requireWebsite, setRequireWebsite] = useState<boolean>(true);
   const [exclusionTerms, setExclusionTerms] = useState<string>('directory, aggregator, blog');
   const [isRunningDiscovery, setIsRunningDiscovery] = useState<boolean>(false);
   const [newCategoryName, setNewCategoryName] = useState<string>('');
+  const [discoveryNotice, setDiscoveryNotice] = useState<string | null>(null);
 
   // Daily Prospects Filter State
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -102,6 +104,7 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
   const handleRunDiscoveryJob = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsRunningDiscovery(true);
+    setDiscoveryNotice(null);
     try {
       const existingDomains = businesses.map((b) => b.normalizedDomain);
       const res = await fetch('/api/ai/discover', {
@@ -110,77 +113,31 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
         body: JSON.stringify({
           country: selectedCountry,
           industry: selectedCategory,
-          count: 2,
+          count: batchCount,
+          exclusionTerms,
+          requireWebsite,
           excludedDomains: existingDomains,
           serviceCatalogueSummary: services.map((s) => s.name).join(', '),
         }),
       });
       const data = await res.json();
 
-      const fallbackCandidates = [
-        {
-          name:
-            selectedCountry === 'Nigeria'
-              ? 'ZuriDerm Clinical Lagos'
-              : selectedCountry === 'United States'
-              ? 'Solstice Clean Labs'
-              : selectedCountry === 'Ghana'
-              ? 'GoldCoast Botanicals Ltd'
-              : selectedCountry === 'Kenya'
-              ? 'RiftValley Roasters & Co'
-              : 'Mayfair Derma Aesthetics',
-          website:
-            selectedCountry === 'Nigeria'
-              ? `https://zuriderm-${Date.now().toString().slice(-3)}.ng`
-              : selectedCountry === 'United States'
-              ? `https://solsticelab-${Date.now().toString().slice(-3)}.com`
-              : `https://mayfairderma-${Date.now().toString().slice(-3)}.co.uk`,
-          city:
-            selectedCountry === 'Nigeria'
-              ? 'Lagos'
-              : selectedCountry === 'United States'
-              ? 'Los Angeles, CA'
-              : selectedCountry === 'Ghana'
-              ? 'Accra'
-              : selectedCountry === 'Kenya'
-              ? 'Nairobi'
-              : 'London',
-          description: `Operating ${selectedCategory.toLowerCase()} brand in ${selectedCountry} with active e-commerce product catalog and seasonal promotional campaigns.`,
-          productsAndServices: [
-            `Flagship ${selectedCategory} Line`,
-            'Seasonal Multi-Pack Bundle',
-            'Direct-to-Consumer Subscription',
-          ],
-          targetAudience: `Digital-first consumers and commercial buyers in ${selectedCountry}.`,
-          recommendedServices: ['Product Advertisements', 'UGC-Style Advertisements'],
-          opportunitySummary: `Active commercial website launching seasonal bundles using static photography; strong fit for AdVibe's Five Creative Pack in ${selectedCountry}.`,
-          suggestedOutreachAngle: `Propose 3 hook-tested 9:16 product demonstration ads for their seasonal bundle.`,
-          contactRole: 'Head of Brand & Growth',
-          contactName: 'Amara Okafor',
-          publicEmail: `partnerships@brand-${Date.now().toString().slice(-3)}.com`,
-          sourceUrl: 'https://official-storefront-verified.example',
-          extractedEvidence:
-            'Active product collection and seasonal promotional hero banner verified; private revenue marked Not publicly established.',
-          serviceRelevanceScore: 18,
-          promotionalActivityScore: 13,
-          recurringOpportunityScore: 13,
-          businessMaturityScore: 8,
-          promotionFrequencyScore: 8,
-          contactAccessibilityScore: 9,
-          commercialValueScore: 8,
-          strategicRelationshipScore: 8,
-        },
-      ];
-
-      const rawList: any[] =
-        Array.isArray(data?.candidates) && data.candidates.length > 0
-          ? data.candidates
-          : fallbackCandidates;
+      const rawList: any[] = Array.isArray(data?.candidates) ? data.candidates : [];
+      const errorsEncountered: string[] = [];
+      if (data?.fallbackReason) {
+        errorsEncountered.push(data.fallbackReason);
+      }
 
       const createdBusinesses: BusinessRecord[] = [];
       let duplicateCount = 0;
+      let rejectedCount = 0;
 
       for (const cand of rawList) {
+        if (!cand?.name || !cand?.website) {
+          rejectedCount += 1;
+          continue;
+        }
+
         const dupCheck = detectDuplicateBusiness(
           {
             name: cand.name,
@@ -188,66 +145,85 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
             country: selectedCountry,
             email: cand.publicEmail,
           },
-          businesses
+          [...businesses, ...createdBusinesses]
         );
         if (dupCheck.isDuplicate) {
           duplicateCount += 1;
           continue;
         }
 
-        const normDom = normalizeDomain(cand.website) || `prospect-${Date.now()}.com`;
+        const normDom = normalizeDomain(cand.website);
+        if (!normDom) {
+          rejectedCount += 1;
+          continue;
+        }
+
         const isSuppressed = suppressionList.some(
           (s) => s.emailOrDomain.toLowerCase() === normDom.toLowerCase()
         );
-        if (isSuppressed) continue;
+        if (isSuppressed) {
+          rejectedCount += 1;
+          continue;
+        }
 
         const breakdown = {
           serviceRelevance: {
-            score: Math.min(20, Number(cand.serviceRelevanceScore) || 18),
+            score: Math.min(20, Math.max(0, Number(cand.serviceRelevanceScore) || 16)),
             max: 20 as const,
-            explanation: `Strong product alignment for ${cand.recommendedServices?.[0] || 'Product Advertisements'}.`,
+            explanation: `Product alignment evaluated for ${cand.recommendedServices?.[0] || 'Product Advertisements'}.`,
           },
           promotionalActivity: {
-            score: Math.min(15, Number(cand.promotionalActivityScore) || 13),
+            score: Math.min(15, Math.max(0, Number(cand.promotionalActivityScore) || 12)),
             max: 15 as const,
-            explanation: 'Visible seasonal storefront promotion.',
+            explanation: 'Visible commercial storefront and marketing activity.',
           },
           recurringOpportunity: {
-            score: Math.min(15, Number(cand.recurringOpportunityScore) || 13),
+            score: Math.min(15, Math.max(0, Number(cand.recurringOpportunityScore) || 12)),
             max: 15 as const,
-            explanation: 'Multi-SKU catalog supports monthly creative testing.',
+            explanation: 'Product catalog supports recurring video campaign production.',
           },
           businessMaturity: {
-            score: Math.min(10, Number(cand.businessMaturityScore) || 8),
+            score: Math.min(10, Math.max(0, Number(cand.businessMaturityScore) || 8)),
             max: 10 as const,
-            explanation: 'Operating commercial website with identifiable offerings.',
+            explanation: 'Active operating commercial website verified.',
           },
           promotionFrequency: {
-            score: Math.min(10, Number(cand.promotionFrequencyScore) || 8),
+            score: Math.min(10, Math.max(0, Number(cand.promotionFrequencyScore) || 8)),
             max: 10 as const,
-            explanation: 'Regular social and storefront updates.',
+            explanation: 'Regular product or campaign updates observed.',
           },
           contactAccessibility: {
-            score: Math.min(10, Number(cand.contactAccessibilityScore) || 8),
+            score: Math.min(10, Math.max(0, Number(cand.contactAccessibilityScore) || 7)),
             max: 10 as const,
-            explanation: cand.publicEmail?.includes('@')
-              ? 'Public decision-maker email identified.'
-              : 'Website contact page identified.',
+            explanation:
+              cand.publicEmail && cand.publicEmail.includes('@')
+                ? 'Public business contact email identified.'
+                : 'Official website contact path identified; email enrichment pending.',
           },
           commercialValue: {
-            score: Math.min(10, Number(cand.commercialValueScore) || 8),
+            score: Math.min(10, Math.max(0, Number(cand.commercialValueScore) || 8)),
             max: 10 as const,
-            explanation: 'Matches country package pricing.',
+            explanation: `Matches configured ${selectedCountry} rate card.`,
           },
           strategicRelationship: {
-            score: Math.min(10, Number(cand.strategicRelationshipScore) || 8),
+            score: Math.min(10, Math.max(0, Number(cand.strategicRelationshipScore) || 8)),
             max: 10 as const,
             explanation: `Strong category reference in ${selectedCountry}.`,
           },
         };
 
         const totalScore = calculateLeadScore(breakdown);
-        const hasEmail = Boolean(cand.publicEmail && cand.publicEmail.includes('@'));
+        if (totalScore < 45) {
+          rejectedCount += 1;
+          continue;
+        }
+
+        const hasEmail = Boolean(
+          cand.publicEmail &&
+            cand.publicEmail.includes('@') &&
+            !cand.publicEmail.toLowerCase().includes('not publicly established')
+        );
+        const todayStr = new Date().toISOString().slice(0, 10);
         const bizId = `biz-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
         const newBiz: BusinessRecord = {
@@ -263,8 +239,8 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
           qualificationStatus: hasEmail
             ? 'Qualified – contact available'
             : 'Qualified – contact unavailable',
-          dateDiscovered: '2026-11-04',
-          discoverySource: 'Search Engine API & Official Website Extractor',
+          dateDiscovered: todayStr,
+          discoverySource: 'Gemini Search & Official Website Analysis',
           leadScore: totalScore,
           aiOriginalScore: totalScore,
           scoreBreakdown: breakdown,
@@ -275,16 +251,16 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
               : ['Product Advertisements', 'UGC-Style Advertisements'],
           opportunitySummary: cand.opportunitySummary,
           researchConfidence: 'High',
-          lastResearchDate: '2026-11-04',
+          lastResearchDate: todayStr,
           researchHistory: [
             {
               id: `rep-${bizId}-v1`,
               versionNumber: 1,
               createdAt: new Date().toISOString(),
               businessOverview: cand.description,
-              productsAndServices: cand.productsAndServices || ['Flagship Product Line'],
-              targetAudience: cand.targetAudience || `${selectedCountry} consumers`,
-              positioning: `Commercial ${selectedCategory} brand`,
+              productsAndServices: cand.productsAndServices || ['Commercial Offerings'],
+              targetAudience: cand.targetAudience || `${selectedCountry} customers`,
+              positioning: `Operating ${selectedCategory} business in ${selectedCountry}`,
               publicSizeIndicator:
                 'Operating commercial storefront (Private revenue & headcount: Not publicly established)',
               marketingActivity: {
@@ -296,27 +272,29 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
                 runsVisibleCampaigns: true,
                 consistentStrategy: true,
                 recurringNeeds: true,
-                summary: cand.extractedEvidence,
+                summary: cand.extractedEvidence || 'Evaluated from public website presence.',
               },
               videoContentAnalysis:
-                'Storefront relies on static product imagery; clear opportunity for short-form AI video creatives.',
+                'Opportunity identified for short-form AI product commercials and explainer creatives.',
               creativeOpportunities: [cand.opportunitySummary],
               recommendedServices: cand.recommendedServices || ['Product Advertisements'],
               strongestInitialOffer: cand.recommendedServices?.[0] || 'Product Advertisements',
               problemSolved:
-                'Produces studio-grade commercial video ads in 5 business days without physical studio overhead.',
+                'Produces studio-grade commercial video ads in 5 business days without physical shoot bottlenecks.',
               suggestedOutreachAngle: cand.suggestedOutreachAngle,
               appropriateFirstConversation: '15-minute Creative Opportunity Audit.',
               evidence: [
                 {
-                  id: `ev-${Date.now()}`,
+                  id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
                   claim: cand.opportunitySummary,
                   sourceUrl: cand.website.startsWith('http')
                     ? cand.website
                     : `https://${cand.website}`,
                   sourceType: 'Official Website',
-                  retrievalDate: '2026-11-04',
-                  extractedEvidence: cand.extractedEvidence,
+                  retrievalDate: todayStr,
+                  extractedEvidence:
+                    cand.extractedEvidence ||
+                    'Verified commercial website; private financials marked Not publicly established.',
                   confidenceLevel: 'High',
                 },
               ],
@@ -324,27 +302,29 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
             },
           ],
           leadOwner: 'Shittu (Founder)',
-          pipelineStage: 'Qualified',
+          pipelineStage: hasEmail ? 'Ready for outreach' : 'Qualified',
           estimatedDealValue: DEFAULT_DEAL_BY_COUNTRY[selectedCountry],
           dealCurrency: CURRENCY_BY_COUNTRY[selectedCountry],
-          expectedClosingDate: '2026-11-30',
+          expectedClosingDate: new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10),
           isDream100: totalScore >= 85,
           dream100Strategy:
             totalScore >= 85
               ? {
-                  enrolledAt: '2026-11-04',
+                  enrolledAt: todayStr,
                   strategicPriority: 'Tier 1 Iconic',
                   reasonForTargeting: cand.opportunitySummary,
                   keyDecisionMakerId: `cnt-${bizId}`,
                   desiredRelationship: 'Recurring video creative partner',
                   engagementStrategy: cand.suggestedOutreachAngle,
                   relationshipStatus: 'Research completed',
-                  nextPlannedActivityDate: '2026-11-05',
+                  nextPlannedActivityDate: new Date(Date.now() + 86400000)
+                    .toISOString()
+                    .slice(0, 10),
                   relationshipNotes: 'Auto-flagged as Dream 100 candidate (Score >= 85).',
                 }
               : undefined,
-          lastInteractionDate: '2026-11-04',
-          nextFollowUpDate: '2026-11-05',
+          lastInteractionDate: todayStr,
+          nextFollowUpDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
           lastContactOutcome: 'Newly discovered',
           contacts: hasEmail
             ? [
@@ -379,7 +359,9 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
               estimatedValue: DEFAULT_DEAL_BY_COUNTRY[selectedCountry],
               currency: CURRENCY_BY_COUNTRY[selectedCountry],
               probability: 45,
-              expectedClosingDate: '2026-11-30',
+              expectedClosingDate: new Date(Date.now() + 21 * 86400000)
+                .toISOString()
+                .slice(0, 10),
               stage: 'Qualified',
               proposalStatus: 'Not Prepared',
               notes: 'Created by Discovery Engine.',
@@ -389,7 +371,7 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
           ],
           timeline: [
             {
-              id: `tl-${Date.now()}`,
+              id: `tl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
               businessId: bizId,
               timestamp: new Date().toISOString(),
               type: 'Research',
@@ -410,10 +392,10 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
       const targetGoal = countryAlloc?.targetPerDay || 10;
       const evalReport = evaluateDiscoveryRunReport({
         targetGoal,
-        rawCandidates: rawList.length + 4,
+        rawCandidates: rawList.length,
         qualifiedCount: createdBusinesses.length,
-        duplicatesCount: duplicateCount + 1,
-        rejectedCount: 3,
+        duplicatesCount: duplicateCount,
+        rejectedCount,
       });
 
       const newReport: DiscoveryJobReport = {
@@ -422,8 +404,8 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
         targetCountry: selectedCountry,
         targetIndustries: [selectedCategory],
         targetQualifiedGoal: targetGoal,
-        rawCandidatesInvestigated: rawList.length + 4,
-        uniqueBusinessesFound: createdBusinesses.length + 3,
+        rawCandidatesInvestigated: rawList.length,
+        uniqueBusinessesFound: createdBusinesses.length + rejectedCount,
         qualifiedBusinesses: createdBusinesses.length,
         qualifiedWithContact: createdBusinesses.filter(
           (b) => b.qualificationStatus === 'Qualified – contact available'
@@ -431,19 +413,36 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
         qualifiedWithoutContact: createdBusinesses.filter(
           (b) => b.qualificationStatus === 'Qualified – contact unavailable'
         ).length,
-        rejectedBusinesses: 3,
-        duplicatesDetected: duplicateCount + 1,
+        rejectedBusinesses: rejectedCount,
+        duplicatesDetected: duplicateCount,
         withPublicEmail: createdBusinesses.filter((b) => b.contacts.length > 0).length,
-        withPhoneNumber: 1,
+        withPhoneNumber: 0,
         withSocialProfiles: createdBusinesses.length,
         outreachEligibleContacts: createdBusinesses.filter((b) => b.contacts.length > 0).length,
         shortfallCount: evalReport.shortfallCount,
         shortfallExplanation: evalReport.explanation,
-        sourcesUsed: ['Search Engine API Adapter', 'Official Business Website Extractor'],
-        errorsEncountered: [],
+        sourcesUsed: ['Gemini Live Discovery Engine', 'Domain Deduplication & Scoring Engine'],
+        errorsEncountered,
       };
 
+      onUpdateAllocations(
+        allocations.map((a) =>
+          a.country === selectedCountry
+            ? {
+                ...a,
+                discoveredToday: a.discoveredToday + rawList.length,
+                qualifiedToday: a.qualifiedToday + createdBusinesses.length,
+              }
+            : a
+        )
+      );
+
       onAddDiscoveredBusinesses(createdBusinesses, newReport);
+      setDiscoveryNotice(
+        createdBusinesses.length > 0
+          ? `Discovered and qualified ${createdBusinesses.length} new business(es) in ${selectedCountry}.`
+          : `Discovery completed with 0 newly qualified businesses (${errorsEncountered[0] || 'Check API key or exclusion filters'}).`
+      );
     } finally {
       setIsRunningDiscovery(false);
     }
@@ -467,6 +466,18 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
             across the 5 target markets. Never inflates qualified numbers if a run falls short.
           </p>
         </div>
+
+        {discoveryNotice && (
+          <div className="p-3.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-medium flex items-center justify-between">
+            <span>{discoveryNotice}</span>
+            <button
+              onClick={() => setDiscoveryNotice(null)}
+              className="text-indigo-700 hover:underline font-semibold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Daily Country Allocations Table (Section 1.3) */}
         <div className="p-5 bg-white border border-slate-200 rounded-xl space-y-4">
@@ -551,12 +562,12 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
                 Execute Targeted Discovery & AI Qualification Job (Section 5.3 & 5.5)
               </h2>
               <p className="text-xs text-slate-500">
-                Retrieves candidates via permitted search adapters, normalizes domains, checks
+                Retrieves real operating candidates via AI discovery, normalizes domains, checks
                 duplicates, extracts evidence, and scores suitability.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Target Country
@@ -593,6 +604,22 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Batch Candidate Count
+                </label>
+                <select
+                  value={batchCount}
+                  onChange={(e) => setBatchCount(Number(e.target.value))}
+                  className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white"
+                >
+                  <option value={3}>3 businesses</option>
+                  <option value={5}>5 businesses</option>
+                  <option value={10}>10 businesses</option>
+                  <option value={15}>15 businesses</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Exclusion Terms
                 </label>
                 <input
@@ -610,7 +637,7 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
                     checked={requireWebsite}
                     onChange={(e) => setRequireWebsite(e.target.checked)}
                   />
-                  <span>Require active official website & identifiable products</span>
+                  <span>Require active official website</span>
                 </label>
               </div>
             </div>
@@ -672,40 +699,52 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
           <h2 className="text-sm font-bold text-slate-900">
             Discovery Job Execution Reports & Shortfall Audit (Section 5.7)
           </h2>
-          <div className="space-y-3">
-            {discoveryReports.map((rep) => (
-              <div
-                key={rep.id}
-                className="p-4 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2 text-xs"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="font-bold text-slate-900">
-                    Run: {rep.runAt} · Market: {rep.targetCountry} · Categories:{' '}
-                    {rep.targetIndustries.join(', ')}
-                  </div>
-                  <div className="font-mono-tabular font-semibold text-indigo-700">
-                    Raw: {rep.rawCandidatesInvestigated} · Unique: {rep.uniqueBusinessesFound} ·
-                    Qualified: {rep.qualifiedBusinesses}/{rep.targetQualifiedGoal} · Duplicates:{' '}
-                    {rep.duplicatesDetected} · Rejected: {rep.rejectedBusinesses}
-                  </div>
-                </div>
-                <div className="text-slate-600 font-mono-tabular">
-                  Contact Availability: {rep.qualifiedWithContact} with public email ·{' '}
-                  {rep.qualifiedWithoutContact} qualified without email · {rep.withPhoneNumber}{' '}
-                  with phone · Sources: {rep.sourcesUsed.join(', ')}
-                </div>
+          {discoveryReports.length === 0 ? (
+            <div className="p-6 text-center border border-dashed border-slate-200 rounded-lg text-xs text-slate-500">
+              No discovery runs executed yet. Select a target market and commercial category above
+              and click <strong>Run Discovery Job</strong> to discover and qualify real businesses.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {discoveryReports.map((rep) => (
                 <div
-                  className={`p-2.5 rounded border ${
-                    rep.shortfallCount > 0
-                      ? 'bg-amber-50 border-amber-200 text-amber-900'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                  }`}
+                  key={rep.id}
+                  className="p-4 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2 text-xs"
                 >
-                  <strong>Honest Qualification Audit:</strong> {rep.shortfallExplanation}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-bold text-slate-900">
+                      Run: {rep.runAt} · Market: {rep.targetCountry} · Categories:{' '}
+                      {rep.targetIndustries.join(', ')}
+                    </div>
+                    <div className="font-mono-tabular font-semibold text-indigo-700">
+                      Raw: {rep.rawCandidatesInvestigated} · Unique: {rep.uniqueBusinessesFound} ·
+                      Qualified: {rep.qualifiedBusinesses}/{rep.targetQualifiedGoal} · Duplicates:{' '}
+                      {rep.duplicatesDetected} · Rejected: {rep.rejectedBusinesses}
+                    </div>
+                  </div>
+                  <div className="text-slate-600 font-mono-tabular">
+                    Contact Availability: {rep.qualifiedWithContact} with public email ·{' '}
+                    {rep.qualifiedWithoutContact} qualified without email · {rep.withPhoneNumber}{' '}
+                    with phone · Sources: {rep.sourcesUsed.join(', ')}
+                  </div>
+                  <div
+                    className={`p-2.5 rounded border ${
+                      rep.shortfallCount > 0
+                        ? 'bg-amber-50 border-amber-200 text-amber-900'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    }`}
+                  >
+                    <strong>Honest Qualification Audit:</strong> {rep.shortfallExplanation}
+                  </div>
+                  {rep.errorsEncountered.length > 0 && (
+                    <div className="text-red-700 text-[11px]">
+                      Diagnostic Note: {rep.errorsEncountered.join(' | ')}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -757,129 +796,144 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {filteredProspects.map((biz) => (
-          <div
-            key={biz.id}
-            className="p-5 bg-white border border-slate-200 rounded-xl space-y-3"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-900">{biz.country}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{biz.city}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{biz.industry}</span>
-                  <span aria-hidden="true">·</span>
-                  <span className="font-mono-tabular font-bold text-indigo-700">
-                    Score: {biz.leadScore}/100 ({biz.priorityCategory})
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  <span
-                    className={`font-semibold ${
-                      biz.qualificationStatus === 'Qualified – contact available'
-                        ? 'text-emerald-700'
-                        : biz.qualificationStatus === 'Qualified – contact unavailable'
-                        ? 'text-amber-700'
-                        : 'text-slate-700'
-                    }`}
-                  >
-                    {biz.qualificationStatus}
-                  </span>
+      {filteredProspects.length === 0 ? (
+        <div className="p-10 bg-white border border-slate-200 rounded-xl text-center space-y-2">
+          <div className="text-sm font-bold text-slate-900">
+            Database is clean — 0 prospects in queue
+          </div>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            All test leads have been removed. Use <strong>Discover Businesses</strong> to discover
+            and qualify real commercial businesses or add a prospect manually in{' '}
+            <strong>Lead Database</strong>.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredProspects.map((biz) => (
+            <div
+              key={biz.id}
+              className="p-5 bg-white border border-slate-200 rounded-xl space-y-3"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                    <span className="font-semibold text-slate-900">{biz.country}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{biz.city}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{biz.industry}</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-mono-tabular font-bold text-indigo-700">
+                      Score: {biz.leadScore}/100 ({biz.priorityCategory})
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span
+                      className={`font-semibold ${
+                        biz.qualificationStatus === 'Qualified – contact available'
+                          ? 'text-emerald-700'
+                          : biz.qualificationStatus === 'Qualified – contact unavailable'
+                          ? 'text-amber-700'
+                          : 'text-slate-700'
+                      }`}
+                    >
+                      {biz.qualificationStatus}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-900">
+                    <button
+                      onClick={() => onOpenBusiness(biz.id)}
+                      className="hover:text-indigo-600 hover:underline text-left"
+                    >
+                      {biz.name}
+                    </button>{' '}
+                    <span className="text-xs font-normal text-slate-500 font-mono-tabular">
+                      ({biz.normalizedDomain})
+                    </span>
+                  </h3>
                 </div>
 
-                <h3 className="text-base font-bold text-slate-900">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => onOpenBusiness(biz.id)}
-                    className="hover:text-indigo-600 hover:underline text-left"
+                    className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 rounded-md"
                   >
-                    {biz.name}
-                  </button>{' '}
-                  <span className="text-xs font-normal text-slate-500 font-mono-tabular">
-                    ({biz.normalizedDomain})
-                  </span>
-                </h3>
+                    Inspect Research & Profile
+                  </button>
+                  <button
+                    onClick={() =>
+                      onUpdateBusiness({
+                        ...biz,
+                        qualificationStatus:
+                          biz.contacts.length > 0
+                            ? 'Qualified – contact available'
+                            : 'Qualified – contact unavailable',
+                        pipelineStage:
+                          biz.contacts.length > 0 ? 'Ready for outreach' : 'Qualified',
+                      })
+                    }
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Approve Prospect</span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      onUpdateBusiness({
+                        ...biz,
+                        isDream100: true,
+                        dream100Strategy: biz.dream100Strategy || {
+                          enrolledAt: new Date().toISOString().slice(0, 10),
+                          strategicPriority: 'Tier 1 Iconic',
+                          reasonForTargeting: biz.opportunitySummary,
+                          keyDecisionMakerId: biz.contacts[0]?.id || '',
+                          desiredRelationship: `Partner on ${biz.recommendedServices[0]}`,
+                          engagementStrategy: 'Executive research-led outreach',
+                          relationshipStatus: 'Ready for introduction',
+                          nextPlannedActivityDate: new Date(Date.now() + 86400000)
+                            .toISOString()
+                            .slice(0, 10),
+                          relationshipNotes: 'Promoted from Daily Prospects.',
+                        },
+                      })
+                    }
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-300 hover:bg-amber-100 rounded-md"
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                    <span>{biz.isDream100 ? 'In Dream 100' : 'Promote to Dream 100'}</span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      onUpdateBusiness({
+                        ...biz,
+                        qualificationStatus: 'Rejected',
+                        pipelineStage: 'Disqualified',
+                      })
+                    }
+                    className="px-2.5 py-1.5 text-xs font-medium text-red-700 border border-red-200 hover:bg-red-50 rounded-md"
+                  >
+                    Reject
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => onOpenBusiness(biz.id)}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 rounded-md"
-                >
-                  Inspect Research & Profile
-                </button>
-                <button
-                  onClick={() =>
-                    onUpdateBusiness({
-                      ...biz,
-                      qualificationStatus:
-                        biz.contacts.length > 0
-                          ? 'Qualified – contact available'
-                          : 'Qualified – contact unavailable',
-                      pipelineStage:
-                        biz.contacts.length > 0 ? 'Ready for outreach' : 'Qualified',
-                    })
-                  }
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Approve Prospect</span>
-                </button>
-                <button
-                  onClick={() =>
-                    onUpdateBusiness({
-                      ...biz,
-                      isDream100: true,
-                      dream100Strategy: biz.dream100Strategy || {
-                        enrolledAt: '2026-11-04',
-                        strategicPriority: 'Tier 1 Iconic',
-                        reasonForTargeting: biz.opportunitySummary,
-                        keyDecisionMakerId: biz.contacts[0]?.id || '',
-                        desiredRelationship: `Partner on ${biz.recommendedServices[0]}`,
-                        engagementStrategy: 'Executive research-led outreach',
-                        relationshipStatus: 'Ready for introduction',
-                        nextPlannedActivityDate: '2026-11-05',
-                        relationshipNotes: 'Promoted from Daily Prospects.',
-                      },
-                    })
-                  }
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-300 hover:bg-amber-100 rounded-md"
-                >
-                  <Star className="w-3.5 h-3.5" />
-                  <span>{biz.isDream100 ? 'In Dream 100' : 'Promote to Dream 100'}</span>
-                </button>
-                <button
-                  onClick={() =>
-                    onUpdateBusiness({
-                      ...biz,
-                      qualificationStatus: 'Rejected',
-                      pipelineStage: 'Disqualified',
-                    })
-                  }
-                  className="px-2.5 py-1.5 text-xs font-medium text-red-700 border border-red-200 hover:bg-red-50 rounded-md"
-                >
-                  Reject
-                </button>
+              <p className="text-xs text-slate-700 leading-relaxed">{biz.opportunitySummary}</p>
+
+              <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+                <span>
+                  Recommended Services: <strong>{biz.recommendedServices.join(' · ')}</strong>
+                </span>
+                <span className="font-mono-tabular">
+                  Primary Contact:{' '}
+                  {biz.contacts[0]
+                    ? `${biz.contacts[0].fullName} (${biz.contacts[0].email})`
+                    : 'Contact enrichment needed'}
+                </span>
               </div>
             </div>
-
-            <p className="text-xs text-slate-700 leading-relaxed">{biz.opportunitySummary}</p>
-
-            <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-              <span>
-                Recommended Services: <strong>{biz.recommendedServices.join(' · ')}</strong>
-              </span>
-              <span className="font-mono-tabular">
-                Primary Contact:{' '}
-                {biz.contacts[0]
-                  ? `${biz.contacts[0].fullName} (${biz.contacts[0].email})`
-                  : 'Contact enrichment needed'}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

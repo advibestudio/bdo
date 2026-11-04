@@ -77,6 +77,7 @@ interface OperationsAndSettingsViewsProps {
   onUpdateServices: (services: AdVibeService[]) => void;
   onUpdateKnowledgeBase: (kb: OperationsAndSettingsViewsProps['knowledgeBase']) => void;
   onChangeUserRole: (role: UserRole) => void;
+  onPurgeAllLeads?: () => void;
 }
 
 export const OperationsAndSettingsViews: React.FC<OperationsAndSettingsViewsProps> = ({
@@ -106,6 +107,7 @@ export const OperationsAndSettingsViews: React.FC<OperationsAndSettingsViewsProp
   onUpdateServices,
   onUpdateKnowledgeBase,
   onChangeUserRole,
+  onPurgeAllLeads,
 }) => {
   const [dateRangeFilter, setDateRangeFilter] = useState<
     'Today' | 'Yesterday' | 'Last 7 days' | 'Last 30 days' | 'Last 90 days'
@@ -188,15 +190,18 @@ export const OperationsAndSettingsViews: React.FC<OperationsAndSettingsViewsProp
               </button>
             </div>
             <div className="text-2xl font-bold font-mono-tabular text-slate-900">
-              {latestReport?.qualifiedBusinesses || 50}{' '}
+              {allocations.reduce((s, a) => s + a.qualifiedToday, 0)}{' '}
               <span className="text-xs font-normal text-slate-500">
-                / 50 Daily Qualified Target
+                / {allocations.reduce((s, a) => s + a.targetPerDay, 0)} Daily Qualified Target
               </span>
             </div>
             <div className="text-xs text-slate-600 space-y-0.5 font-mono-tabular pt-1 border-t border-slate-100">
-              <div>Raw Candidates Investigated Today: {latestReport?.rawCandidatesInvestigated || 132}</div>
-              <div>Duplicates Filtered: {latestReport?.duplicatesDetected || 23}</div>
-              <div>Rejected Unsuitable: {latestReport?.rejectedBusinesses || 59}</div>
+              <div>
+                Raw Candidates Investigated Today:{' '}
+                {allocations.reduce((s, a) => s + a.discoveredToday, 0)}
+              </div>
+              <div>Duplicates Filtered: {latestReport?.duplicatesDetected ?? 0}</div>
+              <div>Rejected Unsuitable: {latestReport?.rejectedBusinesses ?? 0}</div>
               <div>Total Unified CRM Records: {businesses.length}</div>
             </div>
           </div>
@@ -350,42 +355,68 @@ export const OperationsAndSettingsViews: React.FC<OperationsAndSettingsViewsProp
               </button>
             </div>
 
-            <div className="space-y-2.5">
-              {dueTodayTasks.slice(0, 4).map((t) => (
-                <div
-                  key={t.id}
-                  className="p-3 border border-slate-200 rounded-lg flex items-center justify-between gap-3 bg-slate-50/40"
-                >
-                  <div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span
-                        className={`font-semibold ${
-                          t.status === 'Overdue' ? 'text-red-600' : 'text-amber-700'
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                      <span aria-hidden="true">·</span>
-                      <span>{t.country}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>{t.channel}</span>
-                    </div>
-                    <button
-                      onClick={() => onOpenBusiness(t.businessId)}
-                      className="text-xs font-bold text-slate-900 hover:text-indigo-600 hover:underline text-left mt-0.5"
-                    >
-                      {t.businessName} — {t.purpose}
-                    </button>
-                  </div>
+            {dueTodayTasks.length === 0 ? (
+              <div className="p-8 border border-dashed border-slate-200 rounded-lg text-center space-y-2 bg-slate-50/40">
+                <div className="text-xs font-semibold text-slate-800">
+                  No follow-ups due or overdue today
+                </div>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Your database is clean of test leads. Discover and qualify real businesses or
+                  schedule a touchpoint in the Follow-up Manager to see priority tasks here.
+                </p>
+                <div className="pt-1 flex items-center justify-center gap-2">
                   <button
-                    onClick={() => onNavigate('follow-ups')}
-                    className="px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded hover:bg-slate-50 whitespace-nowrap"
+                    onClick={() => onNavigate('discover')}
+                    className="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
                   >
-                    Action
+                    Discover Businesses
+                  </button>
+                  <button
+                    onClick={() => onNavigate('lead-database')}
+                    className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-md"
+                  >
+                    Add Lead Manually
                   </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {dueTodayTasks.slice(0, 4).map((t) => (
+                  <div
+                    key={t.id}
+                    className="p-3 border border-slate-200 rounded-lg flex items-center justify-between gap-3 bg-slate-50/40"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span
+                          className={`font-semibold ${
+                            t.status === 'Overdue' ? 'text-red-600' : 'text-amber-700'
+                          }`}
+                        >
+                          {t.status}
+                        </span>
+                        <span aria-hidden="true">·</span>
+                        <span>{t.country}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{t.channel}</span>
+                      </div>
+                      <button
+                        onClick={() => onOpenBusiness(t.businessId)}
+                        className="text-xs font-bold text-slate-900 hover:text-indigo-600 hover:underline text-left mt-0.5"
+                      >
+                        {t.businessName} — {t.purpose}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => onNavigate('follow-ups')}
+                      className="px-2.5 py-1 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded hover:bg-slate-50 whitespace-nowrap"
+                    >
+                      Action
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1448,6 +1479,33 @@ export const OperationsAndSettingsViews: React.FC<OperationsAndSettingsViewsProp
             />
           </div>
         </div>
+      </div>
+
+      {/* Production Database Hygiene & Clean Reset */}
+      <div className="p-5 bg-white border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900">
+            Production Database State & Lead Purge Control
+          </h2>
+          <p className="text-slate-600 mt-0.5">
+            Current database contains{' '}
+            <strong className="font-mono-tabular">{businesses.length}</strong> business record(s),{' '}
+            <strong className="font-mono-tabular">{tasks.length}</strong> follow-up task(s), and{' '}
+            <strong className="font-mono-tabular">{drafts.length}</strong> outreach draft(s). Use
+            this action to wipe all leads, tasks, and drafts from both local storage and Cloud
+            Firestore while preserving AdVibe Studios service catalogue & pricing.
+          </p>
+        </div>
+        {onPurgeAllLeads && (
+          <button
+            type="button"
+            onClick={onPurgeAllLeads}
+            className="inline-flex items-center gap-1.5 px-4 py-2 font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Purge All Leads & Clean Database</span>
+          </button>
+        )}
       </div>
     </div>
   );
