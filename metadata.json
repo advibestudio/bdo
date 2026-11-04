@@ -1,0 +1,6 @@
+{
+  "name": "AdVibe Prospect Intelligence",
+  "description": "AI-powered business discovery, prospect research, Dream 100 CRM, email outreach, and sales intelligence platform for AdVibe Studios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

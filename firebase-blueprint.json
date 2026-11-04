@@ -1,0 +1,258 @@
+{
+  "entities": {
+    "BusinessRecord": {
+      "title": "BusinessRecord",
+      "description": "Unified CRM record for a discovered or managed business prospect in AdVibe Prospect Intelligence.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the record owner.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Official business name.",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "description": "Normalized website domain used for deduplication.",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "country": {
+          "type": "string",
+          "description": "Target market country.",
+          "enum": ["United States", "United Kingdom", "Nigeria", "Ghana", "Kenya"]
+        },
+        "industry": {
+          "type": "string",
+          "description": "Primary business category or industry.",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "qualificationStatus": {
+          "type": "string",
+          "description": "Qualification and contact readiness status.",
+          "enum": [
+            "Qualified – contact available",
+            "Qualified – contact unavailable",
+            "Needs more research",
+            "Pending review",
+            "Rejected",
+            "Duplicate",
+            "Excluded"
+          ]
+        },
+        "pipelineStage": {
+          "type": "string",
+          "description": "Current sales pipeline stage.",
+          "maxLength": 80,
+          "minLength": 1
+        },
+        "leadScore": {
+          "type": "integer",
+          "description": "Composite qualification score from 0 to 100."
+        },
+        "isDream100": {
+          "type": "boolean",
+          "description": "Whether this business is enrolled in the Dream 100 program."
+        },
+        "payloadJson": {
+          "type": "string",
+          "description": "Serialized extended intelligence, contacts, research history, and timeline.",
+          "maxLength": 200000,
+          "minLength": 2
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "domain",
+        "country",
+        "industry",
+        "qualificationStatus",
+        "pipelineStage",
+        "leadScore",
+        "isDream100",
+        "payloadJson",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FollowUpTaskRecord": {
+      "title": "FollowUpTaskRecord",
+      "description": "Follow-up task and relationship management action item.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the task owner.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "businessId": {
+          "type": "string",
+          "description": "Associated business record ID.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Follow-up task purpose.",
+          "maxLength": 240,
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "description": "Current follow-up lifecycle status.",
+          "enum": [
+            "Pending",
+            "Due today",
+            "Overdue",
+            "In progress",
+            "Awaiting approval",
+            "Draft prepared",
+            "Completed",
+            "Rescheduled",
+            "Cancelled",
+            "Blocked"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "description": "Communication channel for the follow-up.",
+          "maxLength": 60,
+          "minLength": 1
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Scheduled follow-up ISO date string.",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "businessId",
+        "title",
+        "status",
+        "channel",
+        "dueDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CampaignDraftRecord": {
+      "title": "CampaignDraftRecord",
+      "description": "Individual personalised email outreach draft and tracking status.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the campaign owner.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "businessId": {
+          "type": "string",
+          "description": "Target business ID.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Personalised email subject line.",
+          "maxLength": 300,
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "description": "Personalised email body text.",
+          "maxLength": 20000,
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "description": "Outreach message status (strictly distinguishes draft vs sent).",
+          "enum": [
+            "Pending Approval",
+            "Approved",
+            "Gmail Draft Created",
+            "Confirmed Sent",
+            "Replied",
+            "Rejected"
+          ]
+        },
+        "gmailDraftId": {
+          "type": "string",
+          "description": "Idempotent Gmail draft identifier.",
+          "maxLength": 200,
+          "minLength": 0
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "businessId",
+        "subject",
+        "body",
+        "status",
+        "gmailDraftId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/businesses/{businessId}": {
+      "schema": { "$ref": "#/entities/BusinessRecord" },
+      "description": "Stores unified CRM business records owned by authenticated users."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/FollowUpTaskRecord" },
+      "description": "Stores follow-up tasks associated with businesses."
+    },
+    "/drafts/{draftId}": {
+      "schema": { "$ref": "#/entities/CampaignDraftRecord" },
+      "description": "Stores individual personalised email drafts and tracking states."
+    }
+  }
+}

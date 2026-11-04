@@ -1,0 +1,2433 @@
+# ADVIBE PROSPECT INTELLIGENCE
+## Product Requirements Document (PRD) & Software Requirements Specification (SRS)
+
+**Document status:** Product development specification  
+**Product:** AdVibe Prospect Intelligence  
+**Product owner:** AdVibe Studios  
+**Document purpose:** To define the complete product vision, functional requirements, system behaviour, workflows, data structure, integrations, automation rules and acceptance criteria for the development of AdVibe Prospect Intelligence.
+
+---
+
+# 1. PRODUCT OVERVIEW
+
+## 1.1 Product Description
+
+AdVibe Prospect Intelligence is a custom-built AI-powered business discovery, prospect research, customer relationship management (CRM), email outreach and sales intelligence platform.
+
+The platform will continuously discover businesses that could benefit from AdVibe Studios' services, investigate their operations and marketing activities, identify publicly available business contact information, evaluate their suitability as prospective customers, recommend relevant AdVibe services, and organise them into a structured prospect database.
+
+It will then help AdVibe Studios initiate and manage personalised business conversations through email, monitor engagement, schedule follow-ups, manage sales opportunities and track the progress of each business through the sales process.
+
+The platform should function as a combination of:
+
+1. Automated business discovery engine.
+2. AI-powered business research assistant.
+3. Intelligent lead qualification and scoring system.
+4. Dream 100 relationship-building platform.
+5. Full CRM and sales pipeline.
+6. Personalised email campaign management system.
+7. Gmail integration and draft-generation system.
+8. Email performance and engagement tracking system.
+9. Follow-up and relationship management assistant.
+10. Sales analytics and business intelligence dashboard.
+
+The platform must not be designed as a simple lead scraper or bulk email sender.
+
+Its central purpose is to help AdVibe discover the right businesses, understand their needs, approach them intelligently and consistently follow up until there is a clear outcome.
+
+## 1.2 Product Vision
+
+Build a system that continuously answers five important questions:
+
+- Which businesses should AdVibe approach?
+- Why would each business benefit from AdVibe's services?
+- Who should AdVibe contact, and how can they be reached?
+- What should AdVibe say to initiate a meaningful conversation?
+- What action should AdVibe take next to move the relationship forward?
+
+Every discovered business should have a useful record containing its research, contact information, qualification score, recommended service, outreach history, engagement activity and next recommended action.
+
+The application should reduce the amount of manual prospect research, prospect organisation, email preparation and follow-up management required by AdVibe.
+
+## 1.3 Primary Product Objective
+
+The initial operating target is:
+
+**Discover at least 50 newly qualified businesses every day across the five target markets.**
+
+Target countries:
+
+- United States.
+- United Kingdom.
+- Nigeria.
+- Ghana.
+- Kenya.
+
+Default daily allocation:
+
+| Country | Target per day |
+|---|---:|
+| United States | 15 |
+| United Kingdom | 12 |
+| Nigeria | 10 |
+| Ghana | 7 |
+| Kenya | 6 |
+| **Total** | **50** |
+
+The allocation must be editable in the administration settings.
+
+The platform should search more than 50 raw candidates to achieve the target. A typical discovery run may need to investigate 100–150 or more candidates to account for duplicates, unsuitable businesses and incomplete information.
+
+The platform must never falsely report 50 qualified prospects if only 32 actually meet the qualification criteria.
+
+It must report the actual number discovered, qualified, rejected, duplicated and pending further research.
+
+---
+
+# 2. PRODUCT USERS AND PERMISSIONS
+
+## 2.1 Primary User: Administrator / Founder
+
+The administrator has complete access to the application.
+
+The administrator should be able to:
+
+- Configure the discovery engine.
+- Select target countries and industries.
+- Set daily discovery targets.
+- Configure AdVibe services and pricing.
+- Review discovered businesses.
+- Approve or reject prospects.
+- Manage the Dream 100 list.
+- View all business and contact records.
+- Create outreach campaigns.
+- Generate and approve emails.
+- Create Gmail drafts.
+- View email engagement.
+- Manage follow-up tasks.
+- Manage sales opportunities.
+- Assign prospects to team members.
+- View analytics and reports.
+- Manage integrations.
+- Configure automation rules.
+- Manage contact suppression and compliance settings.
+- Access audit logs and system settings.
+
+## 2.2 Future Users: Team Members
+
+The system should support multiple users even if the initial installation has one administrator.
+
+Possible roles:
+
+**Administrator**
+- Full access to all modules and settings.
+
+**Sales Manager**
+- Access to all leads, campaigns, tasks, sales pipelines and reports.
+- Can assign prospects to team members.
+
+**Sales Representative**
+- Can manage assigned businesses.
+- Can record calls, meetings, emails and follow-up notes.
+- Can update lead status.
+- Can create outreach drafts within assigned permissions.
+
+**Researcher**
+- Can investigate businesses and add contacts.
+- Can review and enrich prospect records.
+- Cannot change sensitive account settings or send campaigns.
+
+**Viewer**
+- Read-only access to permitted dashboards and records.
+
+All permissions must be enforced on the server and database, not merely hidden in the user interface.
+
+---
+
+# 3. APPLICATION NAVIGATION AND MODULES
+
+The application should have a modern, professional dashboard with the following primary navigation:
+
+1. Overview
+2. Discover Businesses
+3. Daily Prospects
+4. Dream 100
+5. Lead Database
+6. Follow-up Manager
+7. Sales Pipeline
+8. Campaign Studio
+9. Email Performance
+10. Tasks & Activities
+11. Analytics & Reports
+12. Automation Centre
+13. Integrations
+14. Compliance Centre
+15. Settings
+
+The navigation should remain consistent throughout the application.
+
+The application should be desktop-capable but mobile-first in its design principles. Important actions such as checking follow-ups, reviewing prospects, recording conversations and updating lead statuses should remain usable on mobile devices.
+
+---
+
+# 4. MODULE ONE: MAIN DASHBOARD
+
+## 4.1 Purpose
+
+The dashboard should provide an immediate overview of AdVibe's prospecting and sales activities.
+
+It should answer:
+
+- How many new businesses were discovered?
+- How many prospects have been qualified?
+- How many businesses are awaiting review?
+- How many prospects have been contacted?
+- How many follow-ups are overdue?
+- How many prospects have replied?
+- How many meetings have been scheduled?
+- How many opportunities are active?
+- How many deals have been won or lost?
+- Which countries and industries are producing the best prospects?
+
+## 4.2 Dashboard Metrics
+
+The dashboard should contain the following cards:
+
+### Discovery statistics
+- Businesses discovered today.
+- Qualified businesses today.
+- Businesses discovered this week.
+- Businesses discovered this month.
+- Total businesses in the database.
+- Businesses awaiting review.
+- Businesses rejected.
+- Duplicate candidates detected.
+
+### Outreach statistics
+- Emails prepared.
+- Gmail drafts created.
+- Emails confirmed as sent.
+- Businesses contacted.
+- Businesses awaiting first contact.
+- Follow-ups due today.
+- Overdue follow-ups.
+- Replies received.
+
+### Engagement statistics
+- Estimated open rate.
+- Unique click-through rate.
+- Reply rate.
+- Bounce rate.
+- Unsubscribe rate.
+- Meetings booked.
+- Positive responses.
+
+### Sales statistics
+- Active opportunities.
+- Qualified opportunities.
+- Proposals sent.
+- Deals won.
+- Deals lost.
+- Estimated pipeline value.
+- Revenue generated.
+
+Metrics must clearly distinguish between drafts created, messages sent, delivered messages and engagement events. Creating a Gmail draft must never be counted as sending an email.
+
+## 4.3 Dashboard Visualisations
+
+Include:
+
+- Daily prospect discovery trend.
+- Prospects by country.
+- Prospects by industry.
+- Leads by qualification score.
+- Outreach activity over time.
+- Email engagement over time.
+- Follow-up completion trend.
+- Sales pipeline breakdown.
+- Revenue by service.
+- Conversion from discovered business to paying customer.
+
+Allow date filters:
+
+- Today.
+- Yesterday.
+- Last 7 days.
+- Last 30 days.
+- Last 90 days.
+- Custom date range.
+
+---
+
+# 5. MODULE TWO: AUTOMATED BUSINESS DISCOVERY ENGINE
+
+## 5.1 Purpose
+
+This module continuously searches the internet for businesses that could be potential customers or strategic partners for AdVibe Studios.
+
+It should operate through scheduled background jobs without requiring the user to keep the application open.
+
+The discovery engine must use multiple permitted information sources rather than relying on one scraper.
+
+## 5.2 Target Business Categories
+
+The platform should discover prospects across all AdVibe customer categories.
+
+Initial categories include:
+
+1. E-commerce businesses.
+2. Consumer brands.
+3. Fashion brands.
+4. Beauty brands.
+5. Skincare businesses.
+6. Cosmetics companies.
+7. Food and beverage brands.
+8. Electronics retailers.
+9. Consumer product retailers.
+10. SaaS companies.
+11. Technology companies.
+12. Fintech businesses.
+13. Real estate companies.
+14. Healthcare businesses.
+15. Logistics companies.
+16. Travel and hospitality businesses.
+17. Consulting firms.
+18. Professional services companies.
+19. Digital marketing agencies.
+20. Advertising agencies.
+21. Media buying agencies.
+22. E-commerce educators.
+23. Online coaches.
+24. Digital education businesses.
+25. Creator-led businesses.
+26. Other configurable commercial categories.
+
+The administrator must be able to add, remove, enable or disable categories.
+
+## 5.3 Search Configuration
+
+The discovery engine must support configurable:
+
+- Countries.
+- Cities and regions.
+- Industries.
+- Business types.
+- Business maturity levels.
+- Company size indicators.
+- Website requirements.
+- Social media presence.
+- Contact information requirements.
+- Search frequency.
+- Daily prospect targets.
+- Exclusion terms.
+- Excluded domains.
+- Previously rejected businesses.
+
+Example search configuration:
+
+Country: United Kingdom.
+
+Industry: Skincare and beauty.
+
+Business type: Direct-to-consumer brands.
+
+Business characteristics:
+- Has an active website.
+- Has identifiable products.
+- Has a public business presence.
+- Appears to be actively marketing its products.
+- Could benefit from recurring product advertisements.
+
+The administrator should be able to create multiple discovery profiles and run them independently.
+
+## 5.4 Discovery Sources
+
+Use modular source adapters to retrieve information from:
+
+- Search engine APIs.
+- Official business websites.
+- Public business directories.
+- Public e-commerce platforms.
+- Public professional company directories.
+- Official company social media profiles.
+- Public advertising libraries where permitted.
+- Public press releases and company announcements.
+- Other approved business discovery APIs.
+
+The system must record which source produced each business.
+
+Do not build the platform around unrestricted scraping.
+
+Do not bypass CAPTCHAs, authentication requirements, technical restrictions or website access controls.
+
+## 5.5 Daily Discovery Workflow
+
+The expected workflow is:
+
+1. Scheduled discovery job starts.
+2. System loads active country and industry allocations.
+3. Search adapters retrieve potential business candidates.
+4. Candidate records are normalised.
+5. Domains and business identities are checked for duplicates.
+6. Official websites are investigated.
+7. Public business information is extracted.
+8. Contact information is collected where available.
+9. AI performs business research.
+10. AI evaluates service relevance.
+11. AI assigns a qualification score.
+12. Duplicate and exclusion checks run again.
+13. Qualified prospects are stored in the database.
+14. Prospects are made available in Daily Prospects.
+15. Dashboard statistics are updated.
+16. Discovery report is generated.
+
+## 5.6 Prospect Qualification Requirements
+
+A business should not be considered qualified simply because it has a website.
+
+It should meet a configurable combination of criteria:
+
+- It is a real operating business.
+- Its products or services are identifiable.
+- It has a public commercial presence.
+- There is a plausible need for video advertising or branded content.
+- AdVibe has at least one relevant service to recommend.
+- There is sufficient evidence to explain why it is a potential prospect.
+
+A business can be qualified without an email address. However, the platform must distinguish a qualified business from a business that is immediately ready for outreach.
+
+Use separate statuses:
+
+- Qualified – contact available.
+- Qualified – contact unavailable.
+- Needs more research.
+- Pending review.
+- Rejected.
+- Duplicate.
+- Excluded.
+
+## 5.7 Discovery Reporting
+
+Each discovery job must produce:
+
+- Search date and time.
+- Target country.
+- Target industries.
+- Number of raw candidates.
+- Number of unique businesses.
+- Number of qualified businesses.
+- Number of rejected businesses.
+- Number of duplicates.
+- Number of businesses with public email addresses.
+- Number of businesses with phone numbers.
+- Number of businesses with social profiles.
+- Number of outreach-eligible contacts.
+- Errors encountered.
+- Sources used.
+
+If the daily target is not met, show the shortfall and explain the likely reason.
+
+---
+
+# 6. MODULE THREE: AI BUSINESS RESEARCH ENGINE
+
+## 6.1 Purpose
+
+Every qualified business should have an AI-generated research report.
+
+The system must investigate the business before recommending an outreach strategy.
+
+The research should be grounded in publicly available evidence.
+
+## 6.2 Research Information
+
+For every business, investigate:
+
+### Business identity
+- Business name.
+- Website.
+- Country.
+- City or region, where available.
+- Industry.
+- Business category.
+- Description.
+- Products and services.
+- Target customer.
+- Business positioning.
+- Public business size indicators.
+
+### Marketing activity
+- Does the business actively promote its products?
+- Does it publish video content?
+- Does it use product demonstrations?
+- Does it use customer testimonial content?
+- Does it publish educational content?
+- Does it run visible promotional campaigns?
+- Does it have a consistent content strategy?
+- Does it appear to have recurring promotional needs?
+
+### Content opportunities
+- What products would benefit from video advertisements?
+- What services would benefit from explainer videos?
+- Could the company benefit from UGC-style advertisements?
+- Could the company use a promotional mini-series?
+- Would recurring monthly video content be valuable?
+- Could AdVibe create a white-label production partnership?
+- Are there seasonal or campaign-based opportunities?
+
+### Commercial opportunity
+- Why should AdVibe approach this business?
+- Which service is the strongest initial offer?
+- What problem might AdVibe help solve?
+- What evidence supports the recommendation?
+- What would be an appropriate first conversation?
+
+## 6.3 Evidence Requirements
+
+Every significant research claim should have:
+
+- Source URL.
+- Source type.
+- Retrieval date.
+- Relevant extracted evidence.
+- Confidence level.
+
+The AI must not invent:
+
+- Revenue.
+- Employee count.
+- Advertising expenditure.
+- Existing agency relationships.
+- Marketing budgets.
+- Personal contact information.
+- Claims that the business is running paid advertisements without supporting evidence.
+
+Where information is unavailable, display "Not publicly established".
+
+## 6.4 Research Report Interface
+
+Each business should have a dedicated research page with:
+
+1. Business overview.
+2. Products and services.
+3. Target audience.
+4. Marketing activity.
+5. Video content analysis.
+6. Potential creative opportunities.
+7. Recommended AdVibe services.
+8. Suggested outreach angle.
+9. Contact information.
+10. Evidence and sources.
+11. Research confidence.
+12. Last research date.
+
+Allow the administrator to request a fresh research report.
+
+Preserve previous reports as historical versions rather than silently overwriting them.
+
+---
+
+# 7. MODULE FOUR: LEAD SCORING AND PRIORITISATION
+
+## 7.1 Purpose
+
+The system should rank businesses according to their potential commercial value and strategic relevance to AdVibe.
+
+Use a score from 0 to 100.
+
+## 7.2 Initial Scoring Framework
+
+| Criterion | Maximum score |
+|---|---:|
+| Service relevance | 20 |
+| Evidence of promotional activity | 15 |
+| Recurring creative opportunity | 15 |
+| Business maturity | 10 |
+| Product/service promotion frequency | 10 |
+| Contact accessibility | 10 |
+| Potential commercial value | 10 |
+| Strategic relationship potential | 10 |
+| **Total** | **100** |
+
+Each score must have an explanation.
+
+For example:
+
+Service relevance: 18/20.
+
+Explanation: The company sells multiple skincare products and has a clear opportunity to use short-form product demonstrations and recurring promotional videos.
+
+The scoring algorithm must be configurable.
+
+## 7.3 Priority Categories
+
+- 85–100: Dream 100 candidate.
+- 70–84: High-potential prospect.
+- 50–69: Emerging prospect.
+- Below 50: Low priority or further research.
+
+The administrator must be able to override the AI score while retaining the original AI assessment and a record of the override.
+
+The score should be recalculated when meaningful new research or business activity is added.
+
+---
+
+# 8. MODULE FIVE: DREAM 100
+
+## 8.1 Purpose
+
+This module should implement a structured version of the Dream 100 relationship-building strategy.
+
+The objective is not simply to contact as many businesses as possible.
+
+It is to identify the 100 businesses, brands, agencies, creators and organisations that AdVibe most wants to build relationships with.
+
+These may include:
+
+- Large consumer brands.
+- Established e-commerce businesses.
+- Major online retailers.
+- Influential business educators.
+- High-growth technology companies.
+- Marketing agencies.
+- Strategic business partners.
+- Companies with significant recurring content requirements.
+
+## 8.2 Dream 100 Features
+
+The administrator must be able to:
+
+- Add businesses manually.
+- Add businesses from discovery results.
+- Promote a qualified prospect into Dream 100.
+- Remove a business from Dream 100.
+- Assign strategic priority.
+- Add relationship-building notes.
+- Record the reason for targeting the company.
+- Identify the key decision-maker.
+- Define the desired relationship.
+- Set an engagement strategy.
+- Track every interaction.
+- Schedule future relationship-building activities.
+
+## 8.3 Relationship Status
+
+Each Dream 100 business should have a relationship status:
+
+- Not researched.
+- Research completed.
+- Ready for introduction.
+- First contact made.
+- Conversation started.
+- Relationship developing.
+- Meeting scheduled.
+- Partnership opportunity.
+- Active client.
+- Nurture.
+- Not interested.
+- Closed.
+
+A Dream 100 business must never disappear simply because it has not responded to an email.
+
+The platform should support longer-term relationship-building.
+
+---
+
+# 9. MODULE SIX: LEAD DATABASE AND CRM
+
+## 9.1 Purpose
+
+The lead database is the central record system for every business discovered, researched, contacted or managed by AdVibe.
+
+Every module must use the same underlying business and contact records.
+
+A business must not appear as an unrelated record in Discovery, Campaign Studio and Follow-up Manager.
+
+## 9.2 Business Record
+
+Each business should contain:
+
+### Basic information
+- Business name.
+- Website.
+- Normalised domain.
+- Country.
+- City.
+- Industry.
+- Business category.
+- Description.
+- Business status.
+- Date discovered.
+- Discovery source.
+
+### Intelligence
+- Research report.
+- Lead score.
+- Lead score explanation.
+- Recommended AdVibe services.
+- Opportunity summary.
+- Research confidence.
+- Last research date.
+
+### Sales information
+- Lead owner.
+- Pipeline stage.
+- Estimated deal value.
+- Expected closing date.
+- Priority.
+- Relationship status.
+- Dream 100 status.
+- Last interaction date.
+- Next follow-up date.
+- Last contact outcome.
+
+### Contact information
+A business may have multiple contacts.
+
+Each contact should have:
+
+- Full name.
+- Job title.
+- Department.
+- Professional role.
+- Public business email.
+- Business phone.
+- Business WhatsApp, if publicly provided.
+- LinkedIn profile.
+- Official social media profiles.
+- Contact source.
+- Verification status.
+- Contact status.
+- Preferred communication channel.
+
+Do not assume that the owner of a business is the appropriate contact when a marketing director, founder or procurement decision-maker is publicly identifiable.
+
+## 9.3 Multiple Contact Support
+
+One business can have multiple contacts.
+
+For example:
+
+Business: ABC Skincare Ltd.
+
+Contacts:
+- Founder.
+- Marketing Manager.
+- Brand Manager.
+- Head of E-commerce.
+
+The system must allow separate communication histories and follow-up tasks for each contact.
+
+However, business-level activity should also show a consolidated history.
+
+## 9.4 Duplicate Management
+
+Use normalised website domains as a primary business deduplication signal.
+
+Also compare:
+- Business name.
+- Country.
+- Website.
+- Public contact details.
+- Social media profiles.
+
+Do not merge two businesses merely because they have similar names.
+
+Provide a duplicate review interface with merge and retain options.
+
+When merging, preserve research reports, sources, contacts, campaign history, activities and audit records.
+
+---
+
+# 10. MODULE SEVEN: FOLLOW-UP MANAGER AND RELATIONSHIP MANAGEMENT
+
+## 10.1 Importance
+
+This is a core module.
+
+The system must actively help AdVibe remember, organise and execute follow-ups with different businesses.
+
+It should not merely store a date saying when to contact someone.
+
+It should help answer:
+
+- Who needs to be contacted today?
+- Who has not responded to the previous email?
+- Who requested a follow-up next week?
+- Who showed interest but has not booked a meeting?
+- Who received a proposal but has not responded?
+- Which businesses have been contacted several times?
+- Which prospects need a phone call rather than another email?
+- Which relationships are becoming inactive?
+- What should AdVibe do next with each business?
+
+## 10.2 Follow-up Task Creation
+
+The system must allow follow-up tasks to be created in several ways:
+
+### A. Automatic follow-up creation
+
+After an email is confirmed as sent, the system may create a suggested follow-up task according to the campaign's configured follow-up policy.
+
+For example:
+
+- Day 0: Initial email sent.
+- Day 4: First follow-up.
+- Day 9: Second follow-up.
+- Day 16: Final planned follow-up.
+
+These are suggested operational intervals, not permission to contact everyone automatically.
+
+Every scheduled message must be subject to the recipient's eligibility, suppression status, campaign settings and applicable marketing rules.
+
+### B. Manual follow-up creation
+
+The user should be able to open any business record and select "Create Follow-up".
+
+Fields:
+
+- Business.
+- Contact person.
+- Follow-up date.
+- Follow-up time.
+- Communication channel.
+- Follow-up purpose.
+- Follow-up notes.
+- Priority.
+- Assigned team member.
+- Related campaign or conversation.
+- Reminder preference.
+
+### C. AI-recommended follow-ups
+
+The AI should recommend follow-up actions based on the prospect's history.
+
+Examples:
+
+- The business opened an email but did not reply. Consider a relevant follow-up rather than assuming interest.
+- The business clicked the AdVibe portfolio link. Review the engagement and consider a personalised follow-up.
+- The contact requested pricing. Prepare a pricing response.
+- The contact asked for more information. Prepare a detailed service explanation.
+- The contact said they would respond next month. Schedule a reminder for the agreed date.
+- A proposal was sent and no response was recorded. Schedule a proposal follow-up.
+
+AI recommendations must be presented for approval and must not be treated as verified facts about the prospect's intentions.
+
+## 10.3 Follow-up Dashboard
+
+Create a dedicated Follow-up Manager with these views:
+
+**Today**
+- Tasks due today.
+- Overdue tasks.
+- Scheduled calls.
+- Emails awaiting preparation.
+- Prospects requiring a decision.
+
+**Upcoming**
+- Follow-ups scheduled for the next 7 days.
+- Follow-ups scheduled for the next 30 days.
+- Future relationship-building activities.
+
+**Overdue**
+- Missed follow-ups.
+- Uncompleted calls.
+- Unsent follow-up drafts.
+- Proposals awaiting responses.
+
+**Waiting for response**
+- Initial outreach sent.
+- Follow-up sent.
+- Proposal sent.
+- Meeting confirmation pending.
+- Requested information pending.
+
+**Completed**
+- Completed calls.
+- Completed emails.
+- Meetings held.
+- Conversations recorded.
+- Opportunities advanced.
+
+Provide filters by:
+- Business.
+- Contact.
+- Country.
+- Industry.
+- Priority.
+- Sales representative.
+- Communication channel.
+- Follow-up type.
+- Task status.
+- Due date.
+
+## 10.4 Follow-up Statuses
+
+Every task should support:
+
+- Pending.
+- Due today.
+- Overdue.
+- In progress.
+- Awaiting approval.
+- Draft prepared.
+- Completed.
+- Rescheduled.
+- Cancelled.
+- Blocked.
+
+## 10.5 Follow-up Actions
+
+From a follow-up task, the user should be able to:
+
+- Open the business record.
+- View the complete interaction history.
+- View the last email sent.
+- Read previous notes.
+- View engagement activity.
+- Generate a personalised follow-up email.
+- Create a Gmail draft.
+- Record a phone call.
+- Record a WhatsApp conversation.
+- Schedule a meeting.
+- Reschedule the task.
+- Mark the task completed.
+- Change the sales stage.
+- Add a new note.
+
+The application must make it easy to complete a task without navigating through multiple unrelated screens.
+
+## 10.6 Follow-up Completion
+
+When a follow-up is completed, the system should ask for an outcome.
+
+Possible outcomes:
+
+- No answer.
+- No response yet.
+- Interested.
+- Requested more information.
+- Requested pricing.
+- Meeting booked.
+- Proposal requested.
+- Proposal sent.
+- Not interested.
+- Wrong contact.
+- Unavailable.
+- Follow up later.
+- Converted to customer.
+- Other.
+
+The user should be able to add a free-text note.
+
+The system should then recommend or create the next appropriate task.
+
+For example:
+
+If the outcome is "Interested", the system may recommend a meeting or proposal task.
+
+If the outcome is "Follow up later", require or recommend a future follow-up date.
+
+If the outcome is "Not interested", the system should ask whether the business should be closed, placed into permitted nurture or suppressed from further marketing.
+
+## 10.7 Follow-up Reminders
+
+Provide in-app reminders for:
+
+- Tasks due today.
+- Overdue tasks.
+- Upcoming meetings.
+- Proposals awaiting responses.
+- Important Dream 100 interactions.
+
+Allow configurable reminder times.
+
+Future enhancements may include email and calendar reminders.
+
+## 10.8 Business-Level Interaction Timeline
+
+Every business record must contain a chronological timeline.
+
+Example:
+
+**ABC Skincare Ltd.**
+
+- 4 November: Business discovered.
+- 4 November: AI research completed.
+- 4 November: Added to High Potential.
+- 5 November: Founder identified as primary contact.
+- 6 November: Initial email draft created.
+- 6 November: Email confirmed as sent.
+- 7 November: Tracked portfolio link clicked.
+- 10 November: Follow-up reminder due.
+- 10 November: Follow-up email drafted.
+- 11 November: Contact replied.
+- 12 November: Meeting scheduled.
+
+All activities must be timestamped.
+
+The timeline must distinguish between events confirmed by integrations, manually recorded activities and AI-generated recommendations.
+
+## 10.9 Follow-up Intelligence
+
+The system should calculate:
+
+- Days since last contact.
+- Number of outreach attempts.
+- Number of replies.
+- Number of clicks.
+- Last engagement date.
+- Current relationship status.
+- Next planned action.
+- Follow-up urgency.
+
+The AI should provide a concise recommendation:
+
+"ABC Skincare was contacted six days ago. The contact clicked the portfolio link but has not replied. The next recommended action is a short, personalised follow-up referencing the relevant product-video opportunity."
+
+Do not state that a prospect is interested simply because a tracking pixel registered an open.
+
+## 10.10 Follow-up Protection Rules
+
+The system must prevent:
+
+- Duplicate follow-up tasks for the same intended action.
+- Sending follow-ups after a prospect has replied, unless a new task is deliberately created.
+- Sending after an unsubscribe or suppression event.
+- Sending after a clear do-not-contact request.
+- Automatically sending a sequence when a human approval is required.
+- Repeatedly contacting a prospect without configured frequency limits.
+
+A reply should automatically pause outstanding automated outreach tasks for that contact and flag the conversation for human review.
+
+---
+
+# 11. MODULE EIGHT: SALES PIPELINE
+
+## 11.1 Purpose
+
+The platform must allow AdVibe to track each business from discovery to becoming a paying client.
+
+## 11.2 Default Pipeline Stages
+
+1. Newly discovered.
+2. Research pending.
+3. Qualified.
+4. Ready for outreach.
+5. Initial contact prepared.
+6. Initial contact sent.
+7. Awaiting response.
+8. Conversation started.
+9. Interested.
+10. Meeting scheduled.
+11. Meeting completed.
+12. Proposal requested.
+13. Proposal sent.
+14. Negotiation.
+15. Won.
+16. Lost.
+17. Nurture.
+18. Disqualified.
+
+Administrators should be able to configure additional stages.
+
+## 11.3 Pipeline Board
+
+Provide a visual Kanban-style board.
+
+Each card should display:
+
+- Business name.
+- Primary contact.
+- Country.
+- Industry.
+- Lead score.
+- Recommended service.
+- Estimated deal value.
+- Last contact date.
+- Next follow-up date.
+- Opportunity owner.
+
+Allow users to move opportunities between stages.
+
+Moving an opportunity must preserve its history and trigger appropriate validation or task suggestions.
+
+## 11.4 Opportunity Management
+
+A business may have multiple opportunities.
+
+Example:
+
+ABC Skincare may have:
+
+- Product advertisement package.
+- Monthly content retainer.
+- AI promotional mini-series.
+
+Each opportunity should contain:
+
+- Opportunity name.
+- Business.
+- Primary contact.
+- Recommended service.
+- Estimated value.
+- Currency.
+- Probability.
+- Expected closing date.
+- Stage.
+- Proposal status.
+- Notes.
+- Outcome.
+
+The platform must support multiple currencies.
+
+---
+
+# 12. MODULE NINE: ADVIBE SERVICE CATALOGUE AND AI KNOWLEDGE BASE
+
+## 12.1 Purpose
+
+The AI needs accurate information about AdVibe before it can recommend services or generate meaningful outreach.
+
+Build a central service catalogue.
+
+Do not hard-code service descriptions or prices into individual prompts or application components.
+
+The administrator must be able to edit service information from the settings area.
+
+## 12.2 Initial Service Categories
+
+### 1. Product Advertisements
+AI-powered advertisements for physical products.
+
+### 2. Service Advertisements
+Videos explaining and promoting business services.
+
+### 3. UGC-Style Advertisements
+Creator-style product and service promotional videos.
+
+### 4. Explainer Videos
+Videos designed to explain products, services, processes or business propositions.
+
+### 5. Event and Campaign Advertisements
+Promotional content for events, campaigns, launches and special announcements.
+
+### 6. Brand Videos
+Videos communicating a company's identity, story and value proposition.
+
+### 7. Monthly AI Video Content Retainers
+Recurring monthly production for businesses requiring consistent promotional content.
+
+### 8. AI Promotional Mini-Series
+Cinematic branded entertainment designed to build attention and audience engagement through episodic storytelling.
+
+### 9. AI Video Directing Training Academy
+Training for people who want to learn AI video creation and directing.
+
+Additional service categories must be configurable.
+
+## 12.3 Service Recommendation Logic
+
+The AI should match businesses with appropriate services.
+
+Examples:
+
+| Prospect type | Possible recommendation |
+|---|---|
+| E-commerce brand | Five or Ten Creative Pack |
+| Established consumer brand | Monthly Video Retainer |
+| Fintech | Explainer Videos and Service Advertisements |
+| Real estate | Property Advertisements and Brand Videos |
+| Marketing agency | White-label Production Partnership |
+| Large consumer brand | AI Promotional Mini-Series |
+| Creators and educators | AI Video Directing Training Academy |
+
+These are initial recommendations, not fixed rules.
+
+The AI should be able to recommend multiple services where appropriate.
+
+## 12.4 Pricing Configuration
+
+Support country-specific prices and currencies.
+
+Pricing records should contain:
+
+- Service.
+- Country or market.
+- Currency.
+- Price.
+- Package description.
+- Included deliverables.
+- Video duration limits.
+- Validity period.
+- Active/inactive status.
+- Discount rules.
+- Internal notes.
+
+Prices must be editable without changing application code.
+
+The AI must never quote an unconfigured price or invent discounts.
+
+Where pricing is unavailable, it should recommend a conversation or custom quotation rather than guessing.
+
+## 12.5 AI Business Knowledge
+
+Provide a knowledge base containing:
+
+- AdVibe company description.
+- Brand positioning.
+- Services.
+- Pricing.
+- Package deliverables.
+- Production process.
+- Turnaround times.
+- Revision policy.
+- Ownership terms.
+- Relevant case studies.
+- Frequently asked questions.
+- Approved sales language.
+- Objection-handling guidance.
+- Contact and booking information.
+
+Only approved information should be used in customer-facing messages.
+
+---
+
+# 13. MODULE TEN: CAMPAIGN STUDIO
+
+## 13.1 Purpose
+
+Campaign Studio should allow AdVibe to create personalised outreach campaigns for selected businesses.
+
+It must support individual prospecting and eligible bulk campaign preparation.
+
+## 13.2 Campaign Types
+
+- Cold business introduction.
+- Product advertisement offer.
+- Monthly content retainer offer.
+- White-label agency partnership.
+- AI promotional mini-series offer.
+- Explainer video offer.
+- Training Academy promotion.
+- Dream 100 relationship-building campaign.
+- Event or seasonal campaign.
+- Custom campaign.
+
+## 13.3 Campaign Creation Workflow
+
+1. Create a campaign.
+2. Give it a name.
+3. Select target businesses.
+4. Select contacts.
+5. Choose country and industry filters.
+6. Choose the service being promoted.
+7. Choose the outreach objective.
+8. Define the desired tone.
+9. Select an email template or generate a new one.
+10. AI researches and personalises each message.
+11. Review messages individually or in a batch.
+12. Approve selected messages.
+13. Create individual Gmail drafts.
+14. Synchronise sending status when supported.
+15. Track engagement.
+16. Manage follow-ups.
+
+## 13.4 Personalisation Requirements
+
+Every generated email should consider:
+
+- Business name.
+- Contact name, if reliably known.
+- Business category.
+- Products or services.
+- Relevant marketing activity.
+- Evidence from research.
+- Potential creative opportunity.
+- Recommended AdVibe service.
+- Country-specific pricing where appropriate.
+- Campaign objective.
+
+The AI must avoid:
+
+- Generic mass email language.
+- Fabricated compliments.
+- False claims of familiarity.
+- Pretending to have spoken to someone.
+- Unsubstantiated claims about a company's marketing performance.
+- Fake personalisation.
+- Overly aggressive sales language.
+
+## 13.5 Individual Email Approval
+
+This is a strict requirement.
+
+The system must create individual email drafts, not one email with multiple prospects in the recipient list.
+
+The user must be able to:
+
+- Review each email.
+- Edit the subject.
+- Edit the body.
+- Regenerate the email.
+- Approve the email.
+- Reject the email.
+- Create its Gmail draft.
+- View the Gmail draft reference.
+- Record when it is sent.
+
+Bulk selection may be used to prepare multiple drafts, but each recipient must have a separate personalised message.
+
+**The application must not automatically send prospecting emails without explicit authorisation and a separately configured sending policy.**
+
+---
+
+# 14. MODULE ELEVEN: GMAIL INTEGRATION
+
+## 14.1 Connected Account
+
+Initial Gmail account:
+
+advibestudios.global@gmail.com
+
+Use Google OAuth 2.0.
+
+Never request or store the user's Gmail password.
+
+## 14.2 Initial Permissions
+
+Use the narrowest practical permissions required for the selected functions.
+
+Draft creation requires Gmail compose capability.
+
+Reading sent messages and synchronising replies may require additional Gmail permissions.
+
+The application must clearly explain the permissions requested before connecting the account.
+
+## 14.3 Gmail Draft Workflow
+
+1. AI generates an email.
+2. User approves it.
+3. Backend creates an individual Gmail draft.
+4. Gmail returns a draft identifier.
+5. System stores the Gmail draft identifier.
+6. User opens Gmail.
+7. User reviews and sends the message.
+8. Application synchronises the message status where permitted.
+
+Use idempotency to prevent duplicate drafts when a background job retries.
+
+## 14.4 Sent Message Synchronisation
+
+Where the granted Gmail permissions allow it, synchronise:
+
+- Message identifier.
+- Gmail thread identifier.
+- Recipient.
+- Subject.
+- Sent date.
+- Related contact.
+- Related business.
+- Related campaign.
+
+Do not count a draft as sent.
+
+The system should be able to associate sent messages with existing prospects, including where a message was sent manually in Gmail.
+
+If a sent message cannot confidently be matched to a contact, place it in an unmatched activity review queue.
+
+## 14.5 Reply Synchronisation
+
+A future or separately authorised Gmail mailbox integration should detect replies and attach them to the correct contact and business.
+
+When a reply is received:
+
+- Create a conversation event.
+- Update last interaction date.
+- Pause pending automated follow-up sequences.
+- Flag the prospect for review.
+- Notify the user.
+- Offer an AI-generated reply suggestion.
+- Allow the user to schedule the next action.
+
+Reply synchronisation must handle Gmail threads, forwarded messages, multiple contacts and unmatched senders.
+
+Do not assume that creating a Gmail draft provides access to replies.
+
+---
+
+# 15. MODULE TWELVE: EMAIL TRACKING AND PERFORMANCE ANALYTICS
+
+## 15.1 Purpose
+
+The application should measure the performance of AdVibe's email outreach and campaigns.
+
+It must distinguish between individual prospect engagement and campaign-level statistics.
+
+## 15.2 Metrics
+
+Track:
+
+- Drafts created.
+- Emails confirmed as sent.
+- Delivery status where available.
+- Estimated opens.
+- Unique opens.
+- Total link clicks.
+- Unique link clicks.
+- Click-through rate.
+- Replies.
+- Positive replies.
+- Bounces.
+- Unsubscribes.
+- Meetings booked.
+- Proposals requested.
+- Converted customers.
+
+## 15.3 Open Tracking
+
+Where permitted and enabled, use a unique tracking pixel per recipient and message.
+
+Record:
+
+- Message identifier.
+- Contact identifier.
+- First recorded open.
+- Total recorded open events.
+- Last recorded open.
+- Campaign.
+
+Label the metric "Estimated opens".
+
+Explain that privacy protections, automated image loading and security scanners can produce inaccurate results.
+
+Never present opens as proof that a human read the message.
+
+## 15.4 Click Tracking
+
+Use unique tracking links for supported outbound links.
+
+Example:
+
+A prospect receives a personalised email containing an AdVibe portfolio link.
+
+The link should be associated with:
+
+- Business.
+- Contact.
+- Campaign.
+- Email.
+- Destination URL.
+
+When clicked, record the click and redirect to the approved destination.
+
+Support:
+
+- Portfolio link.
+- Service page.
+- Case study.
+- Booking page.
+- Other approved destination.
+
+Track unique clickers separately from total clicks.
+
+Protect against duplicate events and automated link-scanning bots.
+
+Do not rewrite or obscure links in a way that creates misleading destinations.
+
+## 15.5 Reply Tracking
+
+Where Gmail mailbox synchronisation is authorised, track:
+
+- Reply received.
+- Reply date.
+- Reply thread.
+- Contact.
+- Campaign.
+- Reply classification.
+
+AI may classify replies as:
+
+- Positive.
+- Interested.
+- Request for information.
+- Pricing request.
+- Meeting request.
+- Not interested.
+- Referral.
+- Out of office.
+- Unclear.
+
+AI classifications must be reviewable and editable.
+
+## 15.6 Campaign Analytics
+
+Provide:
+
+- Sent volume.
+- Delivery rate where available.
+- Estimated open rate.
+- Unique click-through rate.
+- Reply rate.
+- Positive reply rate.
+- Bounce rate.
+- Unsubscribe rate.
+- Meeting conversion.
+- Opportunity conversion.
+- Revenue attributed to campaign where known.
+
+Use clearly defined denominators for every percentage.
+
+Do not combine Gmail data and SendFox data into one statistic unless their definitions and reporting periods are compatible.
+
+---
+
+# 16. MODULE THIRTEEN: SENDFOX INTEGRATION
+
+## 16.1 Purpose
+
+SendFox should be an optional email marketing integration.
+
+It should not replace the personalised Gmail prospecting workflow.
+
+Use SendFox primarily for eligible subscribers, newsletter campaigns and broader permission-based marketing communications.
+
+## 16.2 Features
+
+Where supported by the provider's current API:
+
+- Connect SendFox account.
+- Synchronise eligible contacts.
+- Create or map subscriber lists.
+- Associate contacts with campaign segments.
+- Create or manage campaigns.
+- Retrieve campaign statistics.
+- Retrieve click statistics.
+- Retrieve available subscriber events.
+- Synchronise unsubscribe information.
+- Record campaign activity in the CRM.
+
+Verify the current SendFox API capabilities before implementing individual features.
+
+If an event is not exposed by the API, the application must not pretend it can track it.
+
+## 16.3 Provider Architecture
+
+Build a provider-independent email integration layer.
+
+Initial providers:
+
+- Gmail.
+- SendFox.
+
+The architecture should allow future integrations with other email service providers without rebuilding the campaign and CRM modules.
+
+Potential future providers may include Brevo, Mailchimp or other suitable services.
+
+Each provider must have its own connection status, authentication, event mapping, rate limits and error handling.
+
+---
+
+# 17. MODULE FOURTEEN: AI OUTREACH ASSISTANT
+
+## 17.1 Purpose
+
+The AI Outreach Assistant should help the user decide what to say and what to do next with each business.
+
+It should use the complete business record and interaction history.
+
+## 17.2 Functions
+
+- Generate first-contact emails.
+- Generate follow-up emails.
+- Draft responses to incoming replies.
+- Suggest phone conversation talking points.
+- Prepare meeting agendas.
+- Draft proposals.
+- Generate service recommendations.
+- Summarise long conversations.
+- Identify objections.
+- Recommend next actions.
+- Explain why a prospect is suitable.
+- Suggest relationship-building opportunities.
+
+## 17.3 Follow-up Personalisation
+
+The AI should never generate a follow-up without first reviewing the previous interaction.
+
+For example:
+
+If a contact previously requested pricing, the follow-up should address that request.
+
+If a contact said they would speak with their team, the follow-up should refer to the agreed next step.
+
+If a contact clicked a portfolio link, the system may recommend sharing a relevant example, but should not claim the contact watched or liked the portfolio.
+
+## 17.4 AI Approval Rules
+
+The AI may:
+
+- Research.
+- Analyse.
+- Recommend.
+- Draft.
+- Summarise.
+- Classify.
+
+The AI must not independently:
+
+- Send an email without the configured permission.
+- Promise a price that is not in the service catalogue.
+- Accept contractual terms.
+- Commit to production timelines.
+- Mark a deal as won without confirmation.
+- Override a do-not-contact request.
+- Remove a suppression status.
+
+---
+
+# 18. MODULE FIFTEEN: TASKS AND ACTIVITIES
+
+## 18.1 Purpose
+
+Provide a central activity manager that connects all sales and relationship-building work.
+
+## 18.2 Activity Types
+
+- Research.
+- Initial email.
+- Follow-up email.
+- Phone call.
+- WhatsApp conversation.
+- LinkedIn interaction.
+- Meeting.
+- Proposal.
+- Pricing discussion.
+- Internal review.
+- Relationship-building activity.
+- Other.
+
+## 18.3 Activity Record
+
+Every activity should include:
+
+- Activity type.
+- Business.
+- Contact.
+- Date and time.
+- Owner.
+- Description.
+- Outcome.
+- Related campaign.
+- Related opportunity.
+- Attachments or relevant references.
+- Next action.
+
+Activities should be available in both the global activity manager and the individual business timeline.
+
+## 18.4 Calendar
+
+Provide an integrated calendar-style view of:
+
+- Follow-up tasks.
+- Calls.
+- Meetings.
+- Proposal deadlines.
+- Scheduled relationship activities.
+
+Future Google Calendar integration should be supported.
+
+---
+
+# 19. MODULE SIXTEEN: AUTOMATION CENTRE
+
+## 19.1 Purpose
+
+Allow the administrator to configure background workflows and rules.
+
+## 19.2 Initial Automations
+
+### Discovery automation
+Run business discovery daily using the active country and industry allocations.
+
+### Research automation
+Automatically research newly discovered businesses.
+
+### Qualification automation
+Score businesses after research is completed.
+
+### Follow-up automation
+Generate follow-up task suggestions after confirmed outreach activity.
+
+### Reply automation
+When an email reply is detected, pause pending automated outreach and notify the user.
+
+### Engagement automation
+When a tracked click occurs, update the prospect engagement record and optionally recommend a follow-up.
+
+### Dream 100 automation
+Notify the user when a Dream 100 prospect has a new meaningful interaction.
+
+### Pipeline automation
+Suggest a pipeline stage change when a meaningful sales event occurs.
+
+### Data hygiene automation
+Identify duplicate records, invalid contact information and stale research.
+
+## 19.3 Automation Control
+
+Every automation must have:
+
+- Enabled/disabled status.
+- Trigger.
+- Conditions.
+- Actions.
+- Execution history.
+- Last execution date.
+- Error details.
+- Retry status.
+- Configuration.
+
+The user must be able to pause, resume or disable automations.
+
+Background tasks must run independently of the browser session.
+
+---
+
+# 20. MODULE SEVENTEEN: COMPLIANCE AND CONTACT GOVERNANCE
+
+## 20.1 Purpose
+
+The platform will process business contact information and may be used for marketing communications in multiple countries.
+
+Compliance must therefore be built into the system.
+
+Public availability of an email address does not automatically mean that a person has consented to marketing.
+
+Rules differ according to jurisdiction, recipient type and communication method.
+
+## 20.2 Required Features
+
+- Record contact source.
+- Record date collected.
+- Store lawful-basis and consent information where applicable.
+- Store communication preferences.
+- Maintain suppression lists.
+- Record unsubscribe events.
+- Record do-not-contact requests.
+- Support contact deletion requests.
+- Support data retention rules.
+- Maintain audit logs.
+- Apply country-specific campaign eligibility rules.
+
+## 20.3 Suppression Rules
+
+Before creating or sending a marketing message, check:
+
+- Contact suppression status.
+- Unsubscribe status.
+- Do-not-contact status.
+- Relevant consent or lawful-basis requirements.
+- Campaign eligibility.
+- Frequency limits.
+- Contact validity.
+
+A suppressed contact must not be reintroduced by a future discovery run.
+
+The system should distinguish between transactional/business communications and marketing communications according to the configured legal and operational rules.
+
+Country-specific rules must be reviewed by a qualified privacy or legal professional before production use.
+
+---
+
+# 21. MODULE EIGHTEEN: INTEGRATIONS
+
+The system should support the following integrations.
+
+| Integration | Purpose |
+|---|---|
+| Google OAuth | Secure account connection |
+| Gmail API | Draft creation and authorised message synchronisation |
+| SendFox API | Newsletter campaigns and supported analytics |
+| OpenAI API | Research, scoring, recommendations and writing |
+| Search API provider | Business discovery |
+| Website extraction provider | Permitted website research |
+| Email verification provider | Contact validation |
+| Supabase | Database and authentication |
+| Trigger.dev | Scheduled and background jobs |
+| Vercel | Hosting and deployment |
+| Sentry | Error monitoring |
+| Google Calendar | Future meeting and reminder synchronisation |
+
+Each integration must have:
+
+- Connection status.
+- Authentication status.
+- Last successful synchronisation.
+- Last error.
+- Permissions.
+- Configuration.
+- Disconnect option.
+
+API credentials must be stored securely on the server.
+
+---
+
+# 22. DATA ARCHITECTURE AND DATABASE REQUIREMENTS
+
+## 22.1 General Requirements
+
+Use a relational database.
+
+Recommended initial stack:
+
+- PostgreSQL through Supabase.
+- Supabase Auth.
+- Row Level Security.
+- Server-side API layer.
+- Background jobs through Trigger.dev.
+
+The system should avoid storing every detail in one enormous leads table.
+
+## 22.2 Core Database Entities
+
+### User and permissions
+- profiles
+- roles
+- permissions
+- team_members
+
+### Businesses and contacts
+- businesses
+- business_domains
+- contacts
+- contact_channels
+- contact_preferences
+
+### Discovery and research
+- discovery_jobs
+- discovery_candidates
+- discovery_sources
+- sources
+- research_reports
+- research_evidence
+- lead_scores
+- service_recommendations
+
+### Dream 100
+- dream100_members
+- relationship_strategies
+
+### Services
+- service_catalog
+- service_packages
+- service_pricing
+- service_deliverables
+- knowledge_base_documents
+
+### Sales
+- sales_pipelines
+- pipeline_stages
+- opportunities
+- opportunity_services
+- opportunity_history
+
+### Campaigns and email
+- campaigns
+- campaign_recipients
+- email_templates
+- email_drafts
+- email_messages
+- email_events
+- email_provider_accounts
+
+### CRM activities
+- activities
+- conversations
+- conversation_messages
+- follow_up_tasks
+- task_reminders
+- meeting_records
+
+### Compliance
+- suppression_list
+- consent_records
+- communication_preferences
+- deletion_requests
+- audit_logs
+
+### Automation
+- automation_rules
+- automation_runs
+- automation_events
+- integration_sync_logs
+
+## 22.3 Data Relationships
+
+The database must support these relationships:
+
+- One business can have many contacts.
+- One contact can have multiple communication channels.
+- One business can have multiple research reports.
+- One business can have multiple lead scores over time.
+- One business can have multiple opportunities.
+- One business can participate in multiple campaigns.
+- One contact can receive multiple individual emails.
+- One email can generate multiple tracking events.
+- One business can have many activities.
+- One contact can have many conversations.
+- One business can have many follow-up tasks.
+- One business can be associated with one or more Dream 100 strategies.
+- One opportunity can contain multiple recommended services.
+
+Every important record should have timestamps and appropriate audit information.
+
+## 22.4 Data Integrity
+
+Implement:
+
+- UUID primary keys.
+- Foreign key constraints.
+- Unique constraints where appropriate.
+- Indexed search fields.
+- Normalised email addresses.
+- Normalised domains.
+- Transaction-safe operations.
+- Audit trails.
+- Historical record preservation.
+- Database backups.
+- Tested row-level security policies.
+
+All user-facing database operations must be authorised on the server.
+
+---
+
+# 23. USER INTERFACE AND EXPERIENCE REQUIREMENTS
+
+## 23.1 Design Direction
+
+The application should look and feel like a polished professional sales intelligence platform, not a generic admin dashboard.
+
+It should have:
+
+- Clean layouts.
+- Strong visual hierarchy.
+- Readable typography.
+- Excellent spacing.
+- Useful data visualisations.
+- Clear status indicators.
+- Responsive tables.
+- Well-designed filters.
+- Consistent navigation.
+- Fast interactions.
+- Mobile-friendly workflows.
+
+Use AdVibe's visual identity where appropriate without making the application overly decorative.
+
+## 23.2 Business Profile Layout
+
+A business profile should have a consistent layout.
+
+**Header**
+- Business name.
+- Website.
+- Country.
+- Industry.
+- Lead score.
+- Priority.
+- Pipeline stage.
+- Dream 100 indicator.
+
+**Main tabs**
+1. Overview.
+2. Research.
+3. Contacts.
+4. Activity Timeline.
+5. Emails.
+6. Follow-ups.
+7. Opportunities.
+8. Notes.
+
+The most important actions should be accessible from the header:
+
+- Create follow-up.
+- Generate email.
+- Record interaction.
+- Schedule meeting.
+- Change stage.
+- Add to Dream 100.
+
+## 23.3 Global Search
+
+The application must support searching by:
+
+- Business name.
+- Domain.
+- Contact name.
+- Email.
+- Phone.
+- Country.
+- Industry.
+- Pipeline stage.
+
+Search should work across the entire CRM.
+
+## 23.4 Filters and Saved Views
+
+Users should be able to save commonly used views.
+
+Examples:
+
+- All Nigerian prospects.
+- Dream 100 businesses.
+- Businesses without email contacts.
+- Prospects with a score above 80.
+- Follow-ups due today.
+- Businesses awaiting replies.
+- Prospects with positive engagement.
+- Opportunities awaiting proposals.
+- Businesses contacted but not yet qualified for a meeting.
+
+---
+
+# 24. NON-FUNCTIONAL SOFTWARE REQUIREMENTS
+
+## 24.1 Performance
+
+- Dashboard should load quickly under normal operating conditions.
+- Use pagination for large lead databases.
+- Use server-side filtering and searching.
+- Avoid loading all prospects into the browser.
+- Run intensive research and discovery jobs in the background.
+- Use caching where appropriate.
+- Use database indexes for frequent queries.
+
+## 24.2 Reliability
+
+- Discovery jobs must survive browser closure.
+- Failed background jobs should be retryable.
+- Email draft creation must be idempotent.
+- Integration errors must be logged.
+- Failed synchronisations must not silently lose data.
+- The system must display job progress and failure reasons.
+
+## 24.3 Security
+
+- Use secure authentication.
+- Enforce role permissions.
+- Encrypt integration credentials.
+- Protect OAuth tokens.
+- Use secure server-side API calls.
+- Apply Row Level Security.
+- Validate all inputs.
+- Rate-limit sensitive endpoints.
+- Protect against common web application vulnerabilities.
+- Never expose secret API keys in frontend code.
+
+## 24.4 Scalability
+
+The architecture should support future growth from hundreds to tens of thousands of businesses.
+
+Use:
+
+- Background queues.
+- Paginated data access.
+- Modular discovery adapters.
+- Modular email providers.
+- Database indexing.
+- Retry policies.
+- Rate-limit management.
+- Asynchronous AI processing.
+
+## 24.5 Observability
+
+Provide:
+
+- Application error logs.
+- Discovery job logs.
+- AI processing logs.
+- Email synchronisation logs.
+- Integration errors.
+- Automation execution history.
+- Database health monitoring.
+- System status indicators.
+
+---
+
+# 25. RECOMMENDED TECHNICAL STACK
+
+The preferred architecture is:
+
+### Frontend
+- Next.js.
+- React.
+- TypeScript.
+- Tailwind CSS.
+- shadcn/ui.
+
+### Backend
+- Next.js server-side API or a clearly separated backend service.
+- TypeScript.
+- Server-side validation.
+- Modular service architecture.
+
+### Database
+- Supabase PostgreSQL.
+- Supabase Auth.
+- Row Level Security.
+
+### Background processing
+- Trigger.dev.
+- Scheduled discovery jobs.
+- AI research queues.
+- Email synchronisation jobs.
+- Follow-up processing jobs.
+
+### AI
+- OpenAI API.
+- Structured output for research and scoring.
+- Separate prompts for discovery, qualification, email generation and follow-up assistance.
+- Model version tracking.
+
+### Hosting
+- Vercel or an equivalent production hosting platform.
+
+### Monitoring
+- Sentry or equivalent.
+
+The implementation should use modular components so the search provider, AI provider, email platform and other integrations can be changed without rewriting the entire application.
+
+---
+
+# 26. CORE END-TO-END WORKFLOWS
+
+## Workflow A: Discover a new prospect
+
+1. Daily discovery job starts.
+2. System searches selected markets.
+3. Candidates are collected.
+4. Duplicates are removed.
+5. Websites are investigated.
+6. Public contact information is collected.
+7. AI prepares a research report.
+8. AI evaluates the prospect.
+9. Qualified businesses enter Daily Prospects.
+10. The user reviews the prospect.
+11. User approves, rejects or promotes the prospect.
+
+## Workflow B: Contact a new business
+
+1. User opens a qualified business.
+2. User reviews its research.
+3. User selects an appropriate contact.
+4. User selects a recommended AdVibe service.
+5. AI generates a personalised email.
+6. User reviews and edits the email.
+7. User approves the email.
+8. System creates an individual Gmail draft.
+9. User sends the email from Gmail.
+10. System synchronises the sent status where authorised.
+11. A follow-up task is scheduled or suggested.
+
+## Workflow C: Follow up with a business
+
+1. Follow-up appears in the user's task list.
+2. User opens the task.
+3. Application displays the full business history.
+4. User reviews previous communication.
+5. AI recommends the next appropriate action.
+6. User chooses email, phone, WhatsApp or another permitted channel.
+7. If email is selected, AI generates a contextual follow-up.
+8. User reviews the message.
+9. System creates a separate Gmail draft.
+10. User sends it.
+11. System records the outcome and schedules the next action where appropriate.
+
+## Workflow D: Prospect replies
+
+1. Gmail synchronisation detects a reply.
+2. Message is matched to a contact and business.
+3. Conversation timeline is updated.
+4. Outstanding automated follow-up tasks are paused.
+5. User is notified.
+6. AI summarises the reply.
+7. AI classifies the reply.
+8. AI recommends a response.
+9. User reviews and approves a reply draft.
+10. User records the next sales action.
+
+## Workflow E: Convert an opportunity
+
+1. Prospect expresses interest.
+2. User updates pipeline stage.
+3. AI suggests a suitable service.
+4. User prepares pricing or proposal.
+5. Proposal is recorded.
+6. Follow-up task is created.
+7. Prospect negotiates or accepts.
+8. User marks the opportunity as won.
+9. Customer record is updated.
+10. Revenue and conversion analytics are updated.
+
+---
+
+# 27. ACCEPTANCE CRITERIA
+
+The application should not be considered production-ready until the following tests pass.
+
+## Discovery
+- Can run a scheduled discovery job without the browser open.
+- Can search all five target countries.
+- Can configure daily country allocations.
+- Can identify and handle duplicate businesses.
+- Can distinguish raw candidates from qualified businesses.
+- Can report when the daily target is not met.
+- Can record sources for research claims.
+
+## Research
+- Generates a structured research report.
+- Provides evidence links.
+- Explains the lead score.
+- Recommends relevant services.
+- Does not invent missing information.
+- Preserves previous research reports.
+
+## CRM
+- Stores businesses and multiple contacts.
+- Stores multiple communication channels.
+- Supports full business histories.
+- Supports global search and filters.
+- Preserves activity history.
+- Supports multiple opportunities per business.
+
+## Follow-up
+- Can create manual follow-up tasks.
+- Can create suggested follow-up tasks.
+- Can display due and overdue tasks.
+- Can reschedule tasks.
+- Can complete tasks with recorded outcomes.
+- Can generate contextual follow-up emails.
+- Can pause outstanding sequences after a reply.
+- Can display the full interaction timeline.
+- Can prevent prohibited follow-ups.
+
+## Campaign Studio
+- Can create individual personalised emails.
+- Can edit and regenerate messages.
+- Can prepare multiple individual drafts.
+- Does not expose recipients to one another.
+- Does not count drafts as sent messages.
+- Records campaign attribution.
+
+## Gmail
+- Can securely connect the specified Gmail account.
+- Can create individual Gmail drafts.
+- Can prevent duplicate drafts on retries.
+- Can synchronise sent messages with the required permissions.
+- Can associate replies with the correct business where supported.
+
+## Email tracking
+- Can record supported tracking events.
+- Can calculate unique clicks.
+- Can distinguish total and unique clicks.
+- Labels opens as estimated.
+- Filters known automated link-scanner activity where feasible.
+- Does not fabricate delivery or engagement data.
+
+## SendFox
+- Can connect the provider securely.
+- Can synchronise supported campaign data.
+- Can retrieve supported campaign statistics.
+- Can synchronise available unsubscribe information.
+- Clearly identifies unavailable provider metrics.
+
+## Security and compliance
+- All sensitive data is protected.
+- API keys are not exposed in frontend code.
+- Role permissions are enforced.
+- Suppression checks work.
+- Unsubscribe and deletion requests are supported.
+- Audit history is available.
+- Row Level Security policies are tested.
+
+---
+
+# 28. IMPLEMENTATION STRATEGY
+
+Although the product is being designed as a complete system, implementation should be performed in controlled development stages.
+
+## Stage 1: Foundation and Architecture
+
+Build:
+- Application shell.
+- Authentication.
+- User roles.
+- Database structure.
+- Server-side API.
+- Settings.
+- Integration framework.
+- Audit logging.
+
+## Stage 2: CRM and Lead Database
+
+Build:
+- Businesses.
+- Contacts.
+- Contact channels.
+- Business profiles.
+- Research storage.
+- Lead scoring.
+- Global search.
+- Filters.
+- Activity timelines.
+
+## Stage 3: Discovery Engine
+
+Build:
+- Country and industry configurations.
+- Search adapters.
+- Candidate collection.
+- Duplicate detection.
+- Website research.
+- Contact collection.
+- Daily scheduled discovery.
+- Discovery reporting.
+
+## Stage 4: AI Intelligence
+
+Build:
+- Research assistant.
+- Qualification engine.
+- Lead scoring.
+- Service recommendations.
+- Dream 100 recommendations.
+- AI knowledge base.
+
+## Stage 5: Follow-up and Sales CRM
+
+Build:
+- Follow-up Manager.
+- Task management.
+- Reminders.
+- Business interaction history.
+- Pipeline board.
+- Opportunities.
+- Outcome recording.
+- AI follow-up suggestions.
+
+## Stage 6: Campaign Studio and Gmail
+
+Build:
+- Campaign creation.
+- Personalised email generation.
+- Individual approval workflow.
+- Gmail OAuth.
+- Gmail draft creation.
+- Sent-message synchronisation.
+- Reply synchronisation where authorised.
+
+## Stage 7: Email Tracking and SendFox
+
+Build:
+- Unique tracking links.
+- Optional open tracking.
+- Click analytics.
+- Reply analytics.
+- SendFox integration.
+- Unified email reporting.
+
+## Stage 8: Automation and Analytics
+
+Build:
+- Scheduled workflows.
+- Automated task suggestions.
+- Engagement notifications.
+- Sales reports.
+- Conversion analytics.
+- System monitoring.
+- Administrative controls.
+
+## Stage 9: Final Production Audit
+
+Test:
+- Database integrity.
+- Security.
+- Authentication.
+- Role permissions.
+- Discovery accuracy.
+- AI research quality.
+- Follow-up logic.
+- Gmail integration.
+- Email attribution.
+- Compliance checks.
+- Background jobs.
+- Mobile usability.
+- Error recovery.
+
+---
+
+# 29. IMPORTANT PRODUCT DESIGN PRINCIPLES
+
+These principles must guide the entire development process.
+
+### 1. One central business record
+
+A business should have one unified record throughout the application.
+
+Discovery, research, campaigns, follow-ups and opportunities must connect to it.
+
+### 2. Research before outreach
+
+The application must understand a business before generating a personalised sales message.
+
+### 3. Evidence before assumptions
+
+The AI must distinguish verified information, reasonable inference and unavailable information.
+
+### 4. Relationship-building over mass messaging
+
+The system should help AdVibe build valuable business relationships, not simply generate large volumes of generic emails.
+
+### 5. Follow-up is a first-class feature
+
+No prospect should become invisible simply because the initial email has been sent.
+
+The platform should always make the next planned action visible.
+
+### 6. Human approval for important external actions
+
+AI can research, recommend and draft. The user remains in control of prospecting emails and important commercial decisions.
+
+### 7. Configurable business information
+
+Services, packages, prices, markets, targets and campaign templates must be editable from the administration area.
+
+### 8. Modular integrations
+
+Gmail and SendFox must be separate providers within a common integration architecture.
+
+### 9. Accurate analytics
+
+The system must report only events it can actually observe.
+
+### 10. Background processing
+
+Discovery, research, synchronisation and scheduled tasks must continue independently of the user's browser session.
+
+---
+
+# 30. FINAL PRODUCT DEFINITION
+
+AdVibe Prospect Intelligence should become the central business development platform for AdVibe Studios.
+
+It should continuously discover potential customers, research their businesses, identify their marketing opportunities, recommend the most relevant AdVibe services, organise prospects into a structured CRM, prepare personalised outreach, create Gmail drafts, measure engagement and manage every follow-up.
+
+The most important outcome is not the number of businesses in the database.
+
+It is the number of meaningful business relationships the platform helps AdVibe create and convert.
+
+**The desired operating cycle is:**
+
+DISCOVER → RESEARCH → QUALIFY → PRIORITISE → CONTACT → TRACK → FOLLOW UP → BUILD RELATIONSHIPS → CONVERT → RETAIN.
+
+Every major feature should contribute to this cycle.

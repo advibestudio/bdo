@@ -1,0 +1,308 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1 & Phase 4.1: Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'shittu.cfm@gmail.com'
+      );
+    }
+
+    function isValidCountry(c) {
+      return c is string && c.size() <= 40 && (
+        c == 'United States' ||
+        c == 'United Kingdom' ||
+        c == 'Nigeria' ||
+        c == 'Ghana' ||
+        c == 'Kenya'
+      );
+    }
+
+    function isValidQualificationStatus(s) {
+      return s is string && s.size() <= 60 && (
+        s == 'Qualified – contact available' ||
+        s == 'Qualified – contact unavailable' ||
+        s == 'Needs more research' ||
+        s == 'Pending review' ||
+        s == 'Rejected' ||
+        s == 'Duplicate' ||
+        s == 'Excluded'
+      );
+    }
+
+    function isValidBusinessRecord(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'name',
+        'domain',
+        'country',
+        'industry',
+        'qualificationStatus',
+        'pipelineStage',
+        'leadScore',
+        'isDream100',
+        'payloadJson',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId',
+        'name',
+        'domain',
+        'country',
+        'industry',
+        'qualificationStatus',
+        'pipelineStage',
+        'leadScore',
+        'isDream100',
+        'payloadJson',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      isValidId(data.ownerId) &&
+      data.ownerId == request.auth.uid &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 200 &&
+      data.domain is string && data.domain.size() >= 1 && data.domain.size() <= 200 &&
+      isValidCountry(data.country) &&
+      data.industry is string && data.industry.size() >= 1 && data.industry.size() <= 120 &&
+      isValidQualificationStatus(data.qualificationStatus) &&
+      data.pipelineStage is string && data.pipelineStage.size() >= 1 && data.pipelineStage.size() <= 80 &&
+      data.leadScore is int && data.leadScore >= 0 && data.leadScore <= 100 &&
+      data.isDream100 is bool &&
+      data.payloadJson is string && data.payloadJson.size() >= 2 && data.payloadJson.size() <= 200000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidTaskStatus(s) {
+      return s is string && s.size() <= 40 && (
+        s == 'Pending' ||
+        s == 'Due today' ||
+        s == 'Overdue' ||
+        s == 'In progress' ||
+        s == 'Awaiting approval' ||
+        s == 'Draft prepared' ||
+        s == 'Completed' ||
+        s == 'Rescheduled' ||
+        s == 'Cancelled' ||
+        s == 'Blocked'
+      );
+    }
+
+    function isValidFollowUpTaskRecord(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'businessId',
+        'title',
+        'status',
+        'channel',
+        'dueDate',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId',
+        'businessId',
+        'title',
+        'status',
+        'channel',
+        'dueDate',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      isValidId(data.ownerId) &&
+      data.ownerId == request.auth.uid &&
+      isValidId(data.businessId) &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 240 &&
+      isValidTaskStatus(data.status) &&
+      data.channel is string && data.channel.size() >= 1 && data.channel.size() <= 60 &&
+      data.dueDate is string && data.dueDate.size() >= 1 && data.dueDate.size() <= 40 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidDraftStatus(s) {
+      return s is string && s.size() <= 40 && (
+        s == 'Pending Approval' ||
+        s == 'Approved' ||
+        s == 'Gmail Draft Created' ||
+        s == 'Confirmed Sent' ||
+        s == 'Replied' ||
+        s == 'Rejected'
+      );
+    }
+
+    function isValidCampaignDraftRecord(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'businessId',
+        'subject',
+        'body',
+        'status',
+        'gmailDraftId',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId',
+        'businessId',
+        'subject',
+        'body',
+        'status',
+        'gmailDraftId',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      isValidId(data.ownerId) &&
+      data.ownerId == request.auth.uid &&
+      isValidId(data.businessId) &&
+      data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 300 &&
+      data.body is string && data.body.size() >= 1 && data.body.size() <= 20000 &&
+      isValidDraftStatus(data.status) &&
+      data.gmailDraftId is string && data.gmailDraftId.size() <= 200 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function ownsParentBusiness(businessId) {
+      return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid;
+    }
+
+    // Bootstrapped Admins Collection
+    match /admins/{adminId} {
+      allow get: if isVerifiedUser() && isValidId(adminId) && (request.auth.uid == adminId || isAdmin());
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
+    // Businesses Collection
+    match /businesses/{businessId} {
+      allow get: if isVerifiedUser() && isValidId(businessId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() &&
+        isValidId(businessId) &&
+        isValidBusinessRecord(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() &&
+        isValidId(businessId) &&
+        isValidBusinessRecord(incoming()) &&
+        existing().ownerId == request.auth.uid &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().domain == existing().domain &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name',
+            'country',
+            'industry',
+            'qualificationStatus',
+            'pipelineStage',
+            'leadScore',
+            'isDream100',
+            'payloadJson',
+            'updatedAt'
+          ])
+        );
+      allow delete: if isVerifiedUser() && isValidId(businessId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Follow-up Tasks Collection (Master Gate checks parent BusinessRecord)
+    match /tasks/{taskId} {
+      allow get: if isVerifiedUser() && isValidId(taskId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() &&
+        isValidId(taskId) &&
+        isValidFollowUpTaskRecord(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        ownsParentBusiness(incoming().businessId);
+      allow update: if isVerifiedUser() &&
+        isValidId(taskId) &&
+        isValidFollowUpTaskRecord(incoming()) &&
+        existing().ownerId == request.auth.uid &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().businessId == existing().businessId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        ownsParentBusiness(existing().businessId) && (
+          isAdmin() ||
+          (
+            existing().status != 'Completed' &&
+            existing().status != 'Cancelled' &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'title',
+              'status',
+              'channel',
+              'dueDate',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isVerifiedUser() && isValidId(taskId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // Campaign Drafts Collection (Master Gate checks parent BusinessRecord)
+    match /drafts/{draftId} {
+      allow get: if isVerifiedUser() && isValidId(draftId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() &&
+        isValidId(draftId) &&
+        isValidCampaignDraftRecord(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        ownsParentBusiness(incoming().businessId);
+      allow update: if isVerifiedUser() &&
+        isValidId(draftId) &&
+        isValidCampaignDraftRecord(incoming()) &&
+        existing().ownerId == request.auth.uid &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().businessId == existing().businessId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        ownsParentBusiness(existing().businessId) && (
+          isAdmin() ||
+          (
+            existing().status != 'Rejected' &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'subject',
+              'body',
+              'status',
+              'gmailDraftId',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isVerifiedUser() && isValidId(draftId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+  }
+}
