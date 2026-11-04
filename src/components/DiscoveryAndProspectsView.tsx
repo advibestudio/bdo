@@ -127,16 +127,18 @@ export const DiscoveryAndProspectsView: React.FC<DiscoveryAndProspectsViewProps>
         });
         if (res.ok) {
           data = await res.json();
-        } else {
-          data = await discoverBusinessesWebFallback(payload);
         }
       } catch {
+        // Static web host (e.g. GitHub Pages) or offline backend; fall back to client-side discovery
+      }
+
+      if (!Array.isArray(data?.candidates) || data.candidates.length === 0) {
         data = await discoverBusinessesWebFallback(payload);
       }
 
       const rawList: any[] = Array.isArray(data?.candidates) ? data.candidates : [];
       const errorsEncountered: string[] = [];
-      if (data?.fallbackReason) {
+      if (data?.fallbackReason && rawList.length === 0) {
         errorsEncountered.push(data.fallbackReason);
       }
 

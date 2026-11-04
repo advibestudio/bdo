@@ -167,17 +167,27 @@ export const BusinessProfileModal: React.FC<BusinessProfileModalProps> = ({
   const handleRequestFreshResearch = async () => {
     setIsRefreshingResearch(true);
     try {
-      const res = await fetch('/api/ai/research', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          business,
-          serviceCatalogue: services.map((s) => ({ name: s.name, shortDescription: s.shortDescription })),
-        }),
-      });
-      const data = await res.json();
+      let aiRep: any = null;
+      try {
+        const res = await fetch('/api/ai/research', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business,
+            serviceCatalogue: services.map((s) => ({
+              name: s.name,
+              shortDescription: s.shortDescription,
+            })),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          aiRep = data?.report || null;
+        }
+      } catch {
+        // Static web host fallback uses deterministic evidence-grounded report synthesis below
+      }
       const nextVersionNum = (business.researchHistory[0]?.versionNumber || 0) + 1;
-      const aiRep = data?.report;
 
       const newReport: ResearchReportVersion = {
         id: `rep-${business.id}-v${nextVersionNum}`,

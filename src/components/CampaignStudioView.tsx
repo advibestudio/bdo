@@ -174,23 +174,30 @@ export const CampaignStudioView: React.FC<CampaignStudioViewProps> = ({
     setIsGenerating(true);
     try {
       const campaign = campaigns.find((c) => c.id === genCampaignId) || campaigns[0];
-      const res = await fetch('/api/ai/generate-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          business: selectedBiz,
-          contact: selectedContact,
-          service: selectedService,
-          pricingRecord: countryPrice || null,
-          campaignObjective: campaign?.objective,
-          tone: genTone,
-          sequenceStep: genSequenceStep,
-          previousInteractions: selectedBiz.timeline.slice(0, 4),
-          knowledgeBase: knowledgeBaseSummary,
-        }),
-      });
-      const data = await res.json();
-      const aiGen = data?.generated;
+      let aiGen: any = null;
+      try {
+        const res = await fetch('/api/ai/generate-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business: selectedBiz,
+            contact: selectedContact,
+            service: selectedService,
+            pricingRecord: countryPrice || null,
+            campaignObjective: campaign?.objective,
+            tone: genTone,
+            sequenceStep: genSequenceStep,
+            previousInteractions: selectedBiz.timeline.slice(0, 4),
+            knowledgeBase: knowledgeBaseSummary,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          aiGen = data?.generated || null;
+        }
+      } catch {
+        // Static web host fallback uses deterministic evidence-grounded email synthesis below
+      }
 
       const priceSentence = countryPrice
         ? `Our ${countryPrice.packageName} in ${selectedBiz.country} is ${countryPrice.currency} ${countryPrice.price.toLocaleString()} (${countryPrice.packageDescription}, delivered in ${countryPrice.turnaroundTime}).`
@@ -344,20 +351,28 @@ advibestudios.global@gmail.com`;
     if (!biz) return;
     setIsRunningAssistant(true);
     try {
-      const res = await fetch('/api/ai/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          taskType: astTaskType,
-          business: biz,
-          contact: biz.contacts[0],
-          contextText: astContext,
-          serviceCatalogueSummary: services.map((s) => s.name).join(', '),
-        }),
-      });
-      const data = await res.json();
-      if (data?.assistantOutput) {
-        setAssistantOutput(data.assistantOutput);
+      let aiOut: any = null;
+      try {
+        const res = await fetch('/api/ai/assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            taskType: astTaskType,
+            business: biz,
+            contact: biz.contacts[0],
+            contextText: astContext,
+            serviceCatalogueSummary: services.map((s) => s.name).join(', '),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          aiOut = data?.assistantOutput || null;
+        }
+      } catch {
+        // Static web host fallback uses deterministic assistant output below
+      }
+      if (aiOut) {
+        setAssistantOutput(aiOut);
       } else {
         setAssistantOutput({
           headline: `${astTaskType} for ${biz.name} (${biz.country})`,

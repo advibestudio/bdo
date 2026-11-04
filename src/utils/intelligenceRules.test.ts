@@ -168,3 +168,23 @@ test('getNextActionRecommendationForOutcome maps outcomes to concrete next steps
   assert.equal(pricingOutcome.suggestedStage, 'Proposal requested');
   assert.ok(pricingOutcome.recommendedTaskTitle?.includes('pricing'));
 });
+
+test('discoverBusinessesWebFallback returns verified commercial businesses across all 5 countries on static web deployments without VITE_GEMINI_API_KEY', async () => {
+  const { discoverBusinessesWebFallback } = await import('../lib/webApiFallback');
+  const countries = ['United States', 'United Kingdom', 'Nigeria', 'Ghana', 'Kenya'];
+  for (const country of countries) {
+    const res = await discoverBusinessesWebFallback({
+      country,
+      industry: 'Skincare businesses',
+      count: 3,
+      excludedDomains: [],
+    });
+    assert.ok(Array.isArray(res.candidates), `Expected array of candidates for ${country}`);
+    assert.equal(res.candidates!.length, 3, `Expected 3 candidates for ${country}`);
+    assert.equal(res.fallbackReason, undefined, `Expected no fallback error message for ${country}`);
+    for (const cand of res.candidates!) {
+      assert.ok(cand.name && cand.website, `Candidate in ${country} has name and website`);
+    }
+  }
+});
+
